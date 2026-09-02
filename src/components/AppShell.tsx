@@ -10,6 +10,7 @@ import {
 import type { ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
 import { ThemeToggle, type Theme } from './ThemeToggle'
+import { UserProfileMenu } from './UserProfileMenu'
 import { cx } from './utils'
 
 export interface AppNavigationItem {
@@ -81,6 +82,11 @@ export function AppShell({
           </span>
         </NavLink>
 
+        {/* Menu do Perfil do Usuário na Sidebar */}
+        <div className="sidebar-profile-box" style={{ padding: '0 0.5rem 0.75rem 0.5rem' }}>
+          <UserProfileMenu />
+        </div>
+
         <nav className="sidebar-nav">
           <span className="sidebar-nav__label">Menu</span>
           {navigationItems.map((item) => (
@@ -96,6 +102,9 @@ export function AppShell({
       </aside>
 
       <div id="main-content" className="app-main" tabIndex={-1}>
+        <header className="mobile-header" style={{ display: 'none' }}>
+          <UserProfileMenu compact />
+        </header>
         <div className="app-content">{children}</div>
       </div>
 

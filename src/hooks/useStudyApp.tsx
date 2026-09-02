@@ -30,6 +30,7 @@ import {
   selectQuestions,
   shuffleQuestionOptions,
 } from '../utils'
+import { useAuth } from './useAuth'
 
 export interface QuizSetup {
   mode: QuizMode
@@ -115,10 +116,18 @@ function applyTheme(theme: Theme) {
 }
 
 export function StudyAppProvider({ children }: { children: ReactNode }) {
-  const [allHistory, setAllHistory] = useState<QuizHistory>(() => storageService.getHistory())
-  const [favorites, setFavorites] = useState<QuestionId[]>(() => storageService.getFavorites())
-  const [settings, setSettingsState] = useState<AppSettings>(() => storageService.getSettings())
-  const [rawDraft, setRawDraft] = useState<ActiveQuiz | null>(() => storageService.getDraft())
+  const { currentUser } = useAuth()
+  const [allHistory, setAllHistory] = useState<QuizHistory>(() => storageService.getHistory(currentUser.id))
+  const [favorites, setFavorites] = useState<QuestionId[]>(() => storageService.getFavorites(currentUser.id))
+  const [settings, setSettingsState] = useState<AppSettings>(() => storageService.getSettings(currentUser.id))
+  const [rawDraft, setRawDraft] = useState<ActiveQuiz | null>(() => storageService.getDraft(currentUser.id))
+
+  useEffect(() => {
+    setAllHistory(storageService.getHistory(currentUser.id))
+    setFavorites(storageService.getFavorites(currentUser.id))
+    setSettingsState(storageService.getSettings(currentUser.id))
+    setRawDraft(storageService.getDraft(currentUser.id))
+  }, [currentUser.id])
 
   const activeTrack = settings.activeTrack ?? 'CTFL'
   const activeTrackInfo: CertificationTrackInfo = useMemo(
@@ -157,14 +166,14 @@ export function StudyAppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const syncTabs = () => {
-      setAllHistory(storageService.getHistory())
-      setFavorites(storageService.getFavorites())
-      setSettingsState(storageService.getSettings())
-      setRawDraft(storageService.getDraft())
+      setAllHistory(storageService.getHistory(currentUser.id))
+      setFavorites(storageService.getFavorites(currentUser.id))
+      setSettingsState(storageService.getSettings(currentUser.id))
+      setRawDraft(storageService.getDraft(currentUser.id))
     }
     window.addEventListener('storage', syncTabs)
     return () => window.removeEventListener('storage', syncTabs)
-  }, [])
+  }, [currentUser.id])
 
   const classification = useMemo(
     () => classifyPerformance(trackStatistics.overallAccuracy),

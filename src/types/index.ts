@@ -266,6 +266,47 @@ export interface PerformanceClassification {
   label: string
 }
 
+export interface UserProfile {
+  id: string
+  name: string
+  username: string
+  avatar: string
+  createdAt: string
+  lastLoginAt: string
+  passwordHash?: string
+}
+
+export interface AuthSession {
+  userId: string
+  user: UserProfile
+  token: string
+  createdAt: string
+}
+
+export const DEFAULT_AVATARS: readonly string[] = [
+  '👨‍💻',
+  '👩‍💻',
+  '🚀',
+  '🎯',
+  '🦊',
+  '🦁',
+  '🤖',
+  '🦉',
+  '⚡',
+  '💎',
+  '🌟',
+  '🏆',
+]
+
+export const GUEST_USER: UserProfile = {
+  id: 'guest',
+  name: 'Convidado',
+  username: 'guest',
+  avatar: '👤',
+  createdAt: '2026-01-01T00:00:00.000Z',
+  lastLoginAt: '2026-01-01T00:00:00.000Z',
+}
+
 export const DEFAULT_SETTINGS: AppSettings = {
   activeTrack: 'CTFL',
   defaultQuestionCount: 40,

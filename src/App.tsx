@@ -2,9 +2,11 @@ import { Component, useEffect, useState, type ErrorInfo, type ReactNode } from '
 import { AlertTriangle, ArrowRight, BookOpenCheck } from 'lucide-react'
 import { Link, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { AppShell } from './components'
+import { AuthProvider } from './hooks/useAuth'
 import { StudyAppProvider, useStudyApp } from './hooks/useStudyApp'
 import { DashboardPage } from './pages/DashboardPage'
 import { HistoryPage } from './pages/HistoryPage'
+import { LoginPage } from './pages/LoginPage'
 import { NewQuizPage } from './pages/NewQuizPage'
 import { PerformancePage } from './pages/PerformancePage'
 import { QuizPage } from './pages/QuizPage'
@@ -95,22 +97,25 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryS
 export default function App() {
   return (
     <AppErrorBoundary>
-      <StudyAppProvider>
-        <ScrollToTop />
-        <Routes>
-          <Route element={<StandardLayout />}>
-            <Route index element={<DashboardPage />} />
-            <Route path="new" element={<NewQuizPage />} />
-            <Route path="history" element={<HistoryPage />} />
-            <Route path="performance" element={<PerformancePage />} />
-            <Route path="settings" element={<SettingsPage />} />
-            <Route path="result/:resultId" element={<ResultPage />} />
-            <Route path="result/:resultId/review" element={<ReviewPage />} />
-            <Route path="*" element={<NotFoundPage />} />
-          </Route>
-          <Route path="quiz" element={<QuizPage />} />
-        </Routes>
-      </StudyAppProvider>
+      <AuthProvider>
+        <StudyAppProvider>
+          <ScrollToTop />
+          <Routes>
+            <Route element={<StandardLayout />}>
+              <Route index element={<DashboardPage />} />
+              <Route path="new" element={<NewQuizPage />} />
+              <Route path="history" element={<HistoryPage />} />
+              <Route path="performance" element={<PerformancePage />} />
+              <Route path="settings" element={<SettingsPage />} />
+              <Route path="result/:resultId" element={<ResultPage />} />
+              <Route path="result/:resultId/review" element={<ReviewPage />} />
+              <Route path="login" element={<LoginPage />} />
+              <Route path="*" element={<NotFoundPage />} />
+            </Route>
+            <Route path="quiz" element={<QuizPage />} />
+          </Routes>
+        </StudyAppProvider>
+      </AuthProvider>
     </AppErrorBoundary>
   )
 }

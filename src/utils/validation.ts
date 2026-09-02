@@ -314,6 +314,18 @@ export const activeQuizSchema: z.ZodType<ActiveQuiz> = z
     })
   })
 
+export const userProfileSchema = z.object({
+  id: nonEmptyText,
+  name: nonEmptyText,
+  username: nonEmptyText,
+  avatar: nonEmptyText,
+  createdAt: isoDate,
+  lastLoginAt: isoDate,
+  passwordHash: z.string().optional(),
+})
+
+export const userProfilesArraySchema = z.array(userProfileSchema)
+
 export const backupDataSchema: z.ZodType<BackupData> = z.object({
   version: z.literal(1),
   exportedAt: isoDate,

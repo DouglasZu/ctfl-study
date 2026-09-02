@@ -9,6 +9,7 @@ import {
   FileCheck2,
   HardDriveDownload,
   Laptop,
+  LogOut,
   Moon,
   Palette,
   Save,
@@ -16,10 +17,14 @@ import {
   Sun,
   Trash2,
   Upload,
+  User,
+  Users,
   X,
 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { TrackSelector } from '../components/TrackSelector'
-import { CERTIFICATION_TRACKS, type AppSettings, type Theme } from '../types'
+import { CERTIFICATION_TRACKS, DEFAULT_AVATARS, type AppSettings, type Theme } from '../types'
+import { useAuth } from '../hooks/useAuth'
 import { useStudyApp } from '../hooks/useStudyApp'
 
 interface BeforeInstallPromptEvent extends Event {
@@ -36,6 +41,7 @@ const themeOptions: Array<{ value: Theme; title: string; description: string; ic
 type Notice = { tone: 'success' | 'error'; message: string } | null
 
 export function SettingsPage() {
+  const { currentUser, isGuest, updateProfile, logout } = useAuth()
   const {
     settings,
     allQuestions,
@@ -49,6 +55,9 @@ export function SettingsPage() {
     discardQuiz,
   } = useStudyApp()
   const [preferences, setPreferences] = useState(settings)
+  const [profileName, setProfileName] = useState(currentUser.name)
+  const [profileAvatar, setProfileAvatar] = useState(currentUser.avatar)
+  const [editingProfile, setEditingProfile] = useState(false)
   const [notice, setNotice] = useState<Notice>(null)
   const [clearOpen, setClearOpen] = useState(false)
   const [discardOpen, setDiscardOpen] = useState(false)
@@ -58,6 +67,20 @@ export function SettingsPage() {
   const fileInput = useRef<HTMLInputElement>(null)
 
   useEffect(() => setPreferences(settings), [settings])
+  useEffect(() => {
+    setProfileName(currentUser.name)
+    setProfileAvatar(currentUser.avatar)
+  }, [currentUser])
+
+  function handleSaveProfile() {
+    try {
+      updateProfile({ name: profileName, avatar: profileAvatar })
+      setEditingProfile(false)
+      setNotice({ tone: 'success', message: 'Perfil atualizado com sucesso.' })
+    } catch (err) {
+      setNotice({ tone: 'error', message: err instanceof Error ? err.message : 'Erro ao atualizar perfil.' })
+    }
+  }
 
   useEffect(() => {
     const capturePrompt = (event: Event) => {
@@ -137,7 +160,7 @@ export function SettingsPage() {
   function confirmClear() {
     clearAllData()
     setClearOpen(false)
-    setNotice({ tone: 'success', message: 'Todos os dados locais foram removidos.' })
+    setNotice({ tone: 'success', message: 'Todos os dados locais deste perfil foram removidos.' })
   }
 
   function confirmDiscard() {
@@ -172,6 +195,100 @@ export function SettingsPage() {
       )}
 
       <div className="settings-stack">
+        {/* Card de Perfil de Usuário */}
+        <section className="settings-card" aria-labelledby="profile-title">
+          <header className="settings-card__header">
+            <span><User size={21} /></span>
+            <div><h2 id="profile-title">Perfil de Usuário Ativo</h2><p>Gerencie o perfil e a conta vinculada aos seus estudos.</p></div>
+          </header>
+          
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', padding: '1rem', backgroundColor: 'var(--color-surface-muted)', borderRadius: 'var(--radius-lg)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
+              <span style={{ fontSize: '2.25rem', width: '3.25rem', height: '3.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '9999px', backgroundColor: 'var(--color-primary-subtle)' }}>
+                {currentUser.avatar}
+              </span>
+              <div>
+                <strong style={{ fontSize: '1.125rem', display: 'block' }}>{currentUser.name}</strong>
+                <span style={{ fontSize: '0.8125rem', color: 'var(--color-text-subtle)' }}>
+                  {isGuest ? 'Visitante (offline, sem conta vinculada)' : `@${currentUser.username}`}
+                </span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              {!isGuest && (
+                <button
+                  type="button"
+                  className="button button--secondary button--sm"
+                  onClick={() => setEditingProfile(!editingProfile)}
+                >
+                  {editingProfile ? 'Cancelar Edição' : 'Editar Perfil'}
+                </button>
+              )}
+              <Link to="/login" className="button button--primary button--sm">
+                <Users size={15} /> Trocar / Criar Conta
+              </Link>
+              {!isGuest && (
+                <button
+                  type="button"
+                  className="button button--ghost button--sm text-danger"
+                  onClick={logout}
+                >
+                  <LogOut size={15} /> Sair
+                </button>
+              )}
+            </div>
+          </div>
+
+          {editingProfile && !isGuest && (
+            <div style={{ marginTop: '1rem', padding: '1rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)' }}>
+              <div className="avatar-picker-section">
+                <label className="field-label"><span>Escolha seu Avatar</span></label>
+                <div className="avatar-grid">
+                  {DEFAULT_AVATARS.map((avatar) => (
+                    <button
+                      key={avatar}
+                      type="button"
+                      className={`avatar-choice-btn ${profileAvatar === avatar ? 'is-selected' : ''}`}
+                      onClick={() => setProfileAvatar(avatar)}
+                    >
+                      <span>{avatar}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <label className="field-label" style={{ marginTop: '0.75rem' }}>
+                <span>Nome de Exibição</span>
+                <input
+                  type="text"
+                  value={profileName}
+                  onChange={(e) => setProfileName(e.target.value)}
+                  placeholder="Seu nome"
+                />
+              </label>
+
+              <div style={{ marginTop: '0.75rem', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                <button type="button" className="button button--ghost button--sm" onClick={() => setEditingProfile(false)}>
+                  Cancelar
+                </button>
+                <button type="button" className="button button--primary button--sm" onClick={handleSaveProfile}>
+                  <Save size={15} /> Salvar Alterações
+                </button>
+              </div>
+            </div>
+          )}
+
+          {isGuest && (
+            <div className="inline-notice inline-notice--warning" style={{ marginTop: '0.75rem' }}>
+              <AlertTriangle size={18} />
+              <span>
+                Você está estudando como Convidado. Crie um perfil com nome e avatar para manter seus dados seguros e identificados.
+              </span>
+            </div>
+          )}
+        </section>
+
         <section className="settings-card" aria-labelledby="appearance-title">
           <header className="settings-card__header"><span><Palette size={21} /></span><div><h2 id="appearance-title">Aparência</h2><p>Escolha o tema mais confortável para estudar.</p></div></header>
           <div className="theme-choice-grid">
