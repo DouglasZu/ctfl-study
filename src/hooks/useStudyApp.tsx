@@ -2,21 +2,25 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import rawQuestions from '../data/questions.json'
 import { storageService } from '../services'
-import type {
-  ActiveQuiz,
-  AppSettings,
-  PerformanceClassification,
-  Question,
-  QuestionId,
-  QuizHistory,
-  QuizMode,
-  QuizResult,
-  Theme,
-  TimerMode,
-  UserStatistics,
+import {
+  CERTIFICATION_TRACKS,
+  type ActiveQuiz,
+  type AppSettings,
+  type CertificationTrack,
+  type CertificationTrackInfo,
+  type PerformanceClassification,
+  type Question,
+  type QuestionId,
+  type QuizHistory,
+  type QuizMode,
+  type QuizResult,
+  type Theme,
+  type TimerMode,
+  type UserStatistics,
 } from '../types'
 import {
   calculateQuizResult,
+  calculateUserStatistics,
   classifyPerformance,
   createActiveQuiz,
   createQuiz,
@@ -24,12 +28,15 @@ import {
   safeParseQuestions,
   selectErrorTrainingQuestions,
   selectQuestions,
+  shuffleQuestionOptions,
 } from '../utils'
 
 export interface QuizSetup {
   mode: QuizMode
   questionCount: number
   topics: string[]
+  chapters?: string[]
+  examId?: string
   timerMode: TimerMode
   durationMinutes?: number
   shuffleOptions: boolean
@@ -40,9 +47,14 @@ export type StartQuizOutcome =
   | { ok: false; message: string }
 
 interface StudyAppValue {
+  activeTrack: CertificationTrack
+  activeTrackInfo: CertificationTrackInfo
+  setActiveTrack: (track: CertificationTrack) => void
+  allQuestions: Question[]
   questions: Question[]
   questionBankIssues: string[]
   history: QuizHistory
+  allHistory: QuizHistory
   statistics: UserStatistics
   favorites: QuestionId[]
   settings: AppSettings
@@ -103,13 +115,36 @@ function applyTheme(theme: Theme) {
 }
 
 export function StudyAppProvider({ children }: { children: ReactNode }) {
-  const [history, setHistory] = useState<QuizHistory>(() => storageService.getHistory())
-  const [statistics, setStatistics] = useState<UserStatistics>(() => {
-    try { return storageService.getStatistics() } catch { return EMPTY_STATISTICS }
-  })
+  const [allHistory, setAllHistory] = useState<QuizHistory>(() => storageService.getHistory())
   const [favorites, setFavorites] = useState<QuestionId[]>(() => storageService.getFavorites())
   const [settings, setSettingsState] = useState<AppSettings>(() => storageService.getSettings())
-  const [draft, setDraft] = useState<ActiveQuiz | null>(() => storageService.getDraft())
+  const [rawDraft, setRawDraft] = useState<ActiveQuiz | null>(() => storageService.getDraft())
+
+  const activeTrack = settings.activeTrack ?? 'CTFL'
+  const activeTrackInfo: CertificationTrackInfo = useMemo(
+    () => (CERTIFICATION_TRACKS.find((track) => track.id === activeTrack) ?? CERTIFICATION_TRACKS[0]) as CertificationTrackInfo,
+    [activeTrack],
+  )
+
+  const trackQuestions = useMemo(
+    () => validQuestions.filter((q) => (q.track ?? 'CTFL') === activeTrack),
+    [activeTrack],
+  )
+
+  const trackHistory = useMemo(
+    () => allHistory.filter((h) => (h.track ?? 'CTFL') === activeTrack),
+    [allHistory, activeTrack],
+  )
+
+  const trackStatistics = useMemo(
+    () => (trackHistory.length > 0 ? calculateUserStatistics(trackHistory) : EMPTY_STATISTICS),
+    [trackHistory],
+  )
+
+  const trackDraft = useMemo(
+    () => (rawDraft && (rawDraft.track ?? 'CTFL') === activeTrack ? rawDraft : null),
+    [rawDraft, activeTrack],
+  )
 
   useEffect(() => {
     applyTheme(settings.theme)
@@ -122,29 +157,32 @@ export function StudyAppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const syncTabs = () => {
-      setHistory(storageService.getHistory())
-      setStatistics(storageService.getStatistics())
+      setAllHistory(storageService.getHistory())
       setFavorites(storageService.getFavorites())
       setSettingsState(storageService.getSettings())
-      setDraft(storageService.getDraft())
+      setRawDraft(storageService.getDraft())
     }
     window.addEventListener('storage', syncTabs)
     return () => window.removeEventListener('storage', syncTabs)
   }, [])
 
   const classification = useMemo(
-    () => classifyPerformance(statistics.overallAccuracy),
-    [statistics.overallAccuracy],
+    () => classifyPerformance(trackStatistics.overallAccuracy),
+    [trackStatistics.overallAccuracy],
   )
+
+  function setActiveTrack(track: CertificationTrack) {
+    updateSettings({ activeTrack: track })
+  }
 
   function persistDraft(nextDraft: ActiveQuiz) {
     const saved = storageService.saveDraft(nextDraft)
-    setDraft(saved)
+    setRawDraft(saved)
   }
 
   function startQuiz(setup: QuizSetup): StartQuizOutcome {
-    if (validQuestions.length === 0) {
-      return { ok: false, message: 'O banco não possui questões válidas para iniciar um simulado.' }
+    if (trackQuestions.length === 0) {
+      return { ok: false, message: `O banco não possui questões válidas para a trilha ${activeTrackInfo.shortTitle}.` }
     }
 
     if (!Number.isFinite(setup.questionCount) || setup.questionCount <= 0) {
@@ -163,38 +201,47 @@ export function StudyAppProvider({ children }: { children: ReactNode }) {
     }
 
     let selected: Question[]
-    if (setup.mode === 'errors') {
+    if (setup.mode === 'exam' && setup.examId) {
+      const examQuestions = trackQuestions.filter((q) => q.examId === setup.examId)
+      if (examQuestions.length === 0) {
+        return { ok: false, message: 'Simulado oficial não encontrado para esta certificação.' }
+      }
+      selected = setup.shuffleOptions
+        ? examQuestions.map((q) => shuffleQuestionOptions(q))
+        : examQuestions.map((q) => ({ ...q, options: [...q.options] }))
+    } else if (setup.mode === 'errors') {
       const wrongIds = new Set(
-        history.flatMap((result) => result.questionResults)
+        trackHistory.flatMap((result) => result.questionResults)
           .filter((item) => item.answered && !item.isCorrect)
           .map((item) => String(item.questionId)),
       )
       if (wrongIds.size === 0) {
-        return { ok: false, message: 'Ainda não há questões respondidas incorretamente para treinar.' }
+        return { ok: false, message: `Ainda não há erros registrados nesta trilha (${activeTrackInfo.shortTitle}).` }
       }
-      selected = selectErrorTrainingQuestions(validQuestions, setup.questionCount, history, {
+      selected = selectErrorTrainingQuestions(trackQuestions, setup.questionCount, trackHistory, {
         shuffleOptions: setup.shuffleOptions,
       })
     } else if (setup.mode === 'favorites') {
       const favoriteIds = new Set(favorites.map(String))
-      const favoriteQuestions = validQuestions.filter((question) => favoriteIds.has(String(question.id)))
+      const favoriteQuestions = trackQuestions.filter((question) => favoriteIds.has(String(question.id)))
       if (favoriteQuestions.length === 0) {
-        return { ok: false, message: 'Você ainda não possui questões favoritas disponíveis.' }
+        return { ok: false, message: `Você não possui questões favoritas salvas nesta trilha (${activeTrackInfo.shortTitle}).` }
       }
       selected = selectQuestions(favoriteQuestions, setup.questionCount, {
-        history,
+        history: trackHistory,
         shuffleOptions: setup.shuffleOptions,
       })
     } else {
-      selected = selectQuestions(validQuestions, setup.questionCount, {
-        history,
-        topics: setup.mode === 'topics' ? setup.topics : undefined,
+      selected = selectQuestions(trackQuestions, setup.questionCount, {
+        history: trackHistory,
+        topics: setup.mode === 'topics' && setup.topics.length > 0 ? setup.topics : undefined,
+        chapters: setup.chapters && setup.chapters.length > 0 ? setup.chapters : undefined,
         shuffleOptions: setup.shuffleOptions,
       })
     }
 
     if (selected.length === 0) {
-      return { ok: false, message: 'Nenhuma questão corresponde aos filtros selecionados.' }
+      return { ok: false, message: 'Nenhuma questão corresponde aos filtros selecionados nesta certificação.' }
     }
 
     const quiz = createQuiz(selected, {
@@ -202,6 +249,8 @@ export function StudyAppProvider({ children }: { children: ReactNode }) {
       topics: [...new Set(selected.map((question) => question.topic))],
       timerMode: setup.timerMode,
       durationMinutes: setup.timerMode === 'exam' ? durationMinutes : undefined,
+      examId: setup.examId,
+      track: activeTrack,
     })
     const nextDraft = createActiveQuiz(quiz)
     persistDraft(nextDraft)
@@ -209,29 +258,29 @@ export function StudyAppProvider({ children }: { children: ReactNode }) {
   }
 
   function selectAnswer(questionId: QuestionId, selectedAnswer: number) {
-    if (!draft) return
-    const question = draft.questions.find((item) => String(item.id) === String(questionId))
+    if (!trackDraft) return
+    const question = trackDraft.questions.find((item) => String(item.id) === String(questionId))
     if (!question || !Number.isInteger(selectedAnswer) || selectedAnswer < 0 || selectedAnswer >= question.options.length) return
     persistDraft({
-      ...draft,
-      answers: { ...draft.answers, [String(questionId)]: selectedAnswer },
+      ...trackDraft,
+      answers: { ...trackDraft.answers, [String(questionId)]: selectedAnswer },
       updatedAt: new Date().toISOString(),
     })
   }
 
   function setCurrentQuestion(index: number) {
-    if (!draft || !Number.isInteger(index)) return
-    const currentIndex = Math.max(0, Math.min(draft.questions.length - 1, index))
-    persistDraft({ ...draft, currentIndex, updatedAt: new Date().toISOString() })
+    if (!trackDraft || !Number.isInteger(index)) return
+    const currentIndex = Math.max(0, Math.min(trackDraft.questions.length - 1, index))
+    persistDraft({ ...trackDraft, currentIndex, updatedAt: new Date().toISOString() })
   }
 
   function toggleQuestionReview(questionId: QuestionId) {
-    if (!draft) return
-    const exists = draft.reviewQuestionIds.some((id) => String(id) === String(questionId))
+    if (!trackDraft) return
+    const exists = trackDraft.reviewQuestionIds.some((id) => String(id) === String(questionId))
     const reviewQuestionIds = exists
-      ? draft.reviewQuestionIds.filter((id) => String(id) !== String(questionId))
-      : [...draft.reviewQuestionIds, questionId]
-    persistDraft({ ...draft, reviewQuestionIds, updatedAt: new Date().toISOString() })
+      ? trackDraft.reviewQuestionIds.filter((id) => String(id) !== String(questionId))
+      : [...trackDraft.reviewQuestionIds, questionId]
+    persistDraft({ ...trackDraft, reviewQuestionIds, updatedAt: new Date().toISOString() })
   }
 
   function toggleFavorite(questionId: QuestionId) {
@@ -239,29 +288,27 @@ export function StudyAppProvider({ children }: { children: ReactNode }) {
   }
 
   function finishQuiz(): QuizResult | null {
-    if (!draft) return null
-    const elapsed = Math.max(0, Math.round((Date.now() - new Date(draft.startedAt).getTime()) / 1000))
-    const durationSeconds = draft.timerMode === 'exam' && draft.durationMinutes
-      ? Math.min(elapsed, draft.durationMinutes * 60)
+    if (!trackDraft) return null
+    const elapsed = Math.max(0, Math.round((Date.now() - new Date(trackDraft.startedAt).getTime()) / 1000))
+    const durationSeconds = trackDraft.timerMode === 'exam' && trackDraft.durationMinutes
+      ? Math.min(elapsed, trackDraft.durationMinutes * 60)
       : elapsed
-    const result = calculateQuizResult(quizFromActiveQuiz(draft), draft.answers, { durationSeconds })
+    const result = calculateQuizResult(quizFromActiveQuiz(trackDraft), trackDraft.answers, { durationSeconds })
     const nextHistory = storageService.saveQuizResult(result)
     storageService.clearDraft()
-    setHistory(nextHistory)
-    setStatistics(storageService.getStatistics())
-    setDraft(null)
+    setAllHistory(nextHistory)
+    setRawDraft(null)
     return result
   }
 
   function discardQuiz() {
     storageService.clearDraft()
-    setDraft(null)
+    setRawDraft(null)
   }
 
   function updateSettings(patch: Partial<AppSettings>): AppSettings {
     const next = storageService.saveSettings(patch)
     setSettingsState(next)
-    setStatistics(storageService.getStatistics())
     return next
   }
 
@@ -277,30 +324,33 @@ export function StudyAppProvider({ children }: { children: ReactNode }) {
 
   function importBackup(input: string | unknown) {
     storageService.importData(input)
-    setHistory(storageService.getHistory())
-    setStatistics(storageService.getStatistics())
+    setAllHistory(storageService.getHistory())
     setFavorites(storageService.getFavorites())
     setSettingsState(storageService.getSettings())
-    setDraft(storageService.getDraft())
+    setRawDraft(storageService.getDraft())
   }
 
   function clearAllData() {
     storageService.clearData()
-    setHistory([])
-    setStatistics(EMPTY_STATISTICS)
+    setAllHistory([])
     setFavorites([])
     setSettingsState(storageService.getSettings())
-    setDraft(null)
+    setRawDraft(null)
   }
 
   const value: StudyAppValue = {
-    questions: validQuestions,
+    activeTrack,
+    activeTrackInfo,
+    setActiveTrack,
+    allQuestions: validQuestions,
+    questions: trackQuestions,
     questionBankIssues: validationIssues,
-    history,
-    statistics,
+    history: trackHistory,
+    allHistory,
+    statistics: trackStatistics,
     favorites,
     settings,
-    draft,
+    draft: trackDraft,
     classification,
     startQuiz,
     selectAnswer,

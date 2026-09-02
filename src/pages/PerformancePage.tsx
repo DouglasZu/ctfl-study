@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { ArrowRight, BarChart3, BrainCircuit, ChartNoAxesColumnIncreasing, CircleAlert, Medal, Sparkles, Target, TrendingDown, TrendingUp } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { TrackSelector } from '../components/TrackSelector'
 import { useStudyApp } from '../hooks/useStudyApp'
 import { formatPercent } from './pageHelpers'
 
@@ -48,7 +49,7 @@ function EvolutionChart({ points }: { points: Array<{ quizId: string; percentage
 }
 
 export function PerformancePage() {
-  const { statistics, history, questions } = useStudyApp()
+  const { statistics, history, questions, activeTrackInfo } = useStudyApp()
   const [breakdown, setBreakdown] = useState<'topics' | 'chapters'>('topics')
   const hasHistory = history.length > 0
 
@@ -65,15 +66,22 @@ export function PerformancePage() {
   return (
     <main className="page performance-page">
       <header className="page-heading">
-        <div><span className="eyebrow">Análise de estudo</span><h1>Meu desempenho</h1><p>Use seus dados para decidir onde concentrar a próxima revisão.</p></div>
+        <div>
+          <span className="eyebrow">{activeTrackInfo.code}</span>
+          <h1>Meu desempenho</h1>
+          <p>Análise detalhada do seu preparo em {activeTrackInfo.shortTitle}.</p>
+        </div>
         {hasHistory && <Link className="button button--primary desktop-cta" to="/new?mode=errors"><Target size={18} /> Treinar meus erros</Link>}
       </header>
+
+      {/* Seletor de Trilha */}
+      <TrackSelector compact showDescription={false} />
 
       {!hasHistory ? (
         <section className="large-empty-state">
           <span className="large-empty-state__icon"><ChartNoAxesColumnIncreasing size={38} /></span>
-          <h2>Suas métricas serão construídas aqui</h2>
-          <p>Conclua seu primeiro simulado para visualizar evolução, médias e assuntos para revisar.</p>
+          <h2>Suas métricas em {activeTrackInfo.code} serão construídas aqui</h2>
+          <p>Conclua seu primeiro simulado de {activeTrackInfo.shortTitle} para visualizar evolução, médias e pontos fracos.</p>
           <Link className="button button--primary" to="/new">Começar agora <ArrowRight size={18} /></Link>
         </section>
       ) : (

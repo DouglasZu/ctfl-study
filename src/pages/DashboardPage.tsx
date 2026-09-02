@@ -1,5 +1,6 @@
 import {
   ArrowRight,
+  Award,
   BookOpenCheck,
   BrainCircuit,
   CheckCircle2,
@@ -13,8 +14,10 @@ import {
   Target,
   Trophy,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { TrackSelector } from '../components/TrackSelector'
 import { useStudyApp } from '../hooks/useStudyApp'
+import { OFFICIAL_EXAMS } from '../utils/quiz'
 import { formatDate, formatPercent } from './pageHelpers'
 
 const classificationCopy = {
@@ -46,29 +49,50 @@ const classificationCopy = {
 } as const
 
 export function DashboardPage() {
-  const { statistics, history, draft, favorites, questions, classification } = useStudyApp()
+  const { statistics, history, draft, favorites, questions, classification, activeTrack, activeTrackInfo, startQuiz } = useStudyApp()
+  const navigate = useNavigate()
   const performance = classificationCopy[classification.key]
   const latest = history.at(0)
   const hasHistory = history.length > 0
+
+  const trackOfficialExams = OFFICIAL_EXAMS.filter((exam) => exam.track === activeTrack)
+
+  function handleStartOfficialExam(examId: string, durationMinutes: number) {
+    const outcome = startQuiz({
+      mode: 'exam',
+      examId,
+      questionCount: 40,
+      topics: [],
+      timerMode: 'exam',
+      durationMinutes,
+      shuffleOptions: true,
+    })
+    if (outcome.ok) {
+      navigate('/quiz')
+    }
+  }
 
   return (
     <main className="page dashboard-page">
       <header className="page-heading dashboard-heading">
         <div>
-          <span className="eyebrow">Visão geral</span>
-          <h1>Olá, vamos estudar?</h1>
-          <p>Acompanhe seu preparo para o CTFL e escolha o próximo passo.</p>
+          <span className="eyebrow">{activeTrackInfo.code}</span>
+          <h1>{activeTrackInfo.shortTitle}</h1>
+          <p>{activeTrackInfo.subtitle}</p>
         </div>
         <Link className="button button--primary desktop-cta" to="/new">
           <Play size={18} fill="currentColor" /> Novo simulado
         </Link>
       </header>
 
+      {/* Seletor de Trilha de Certificação */}
+      <TrackSelector />
+
       {draft && (
         <section className="resume-banner" aria-label="Simulado em andamento">
           <div className="resume-banner__icon"><Clock3 size={22} /></div>
           <div className="resume-banner__copy">
-            <strong>Você tem um simulado em andamento</strong>
+            <strong>Você tem um simulado em andamento ({activeTrackInfo.shortTitle})</strong>
             <span>
               {Object.values(draft.answers).filter((answer) => answer !== null).length} de{' '}
               {draft.questions.length} questões respondidas
@@ -80,14 +104,59 @@ export function DashboardPage() {
         </section>
       )}
 
+      {/* Simulados Oficiais Pré-Configurados da Trilha */}
+      {trackOfficialExams.length > 0 && (
+        <section className="section-block" aria-labelledby="official-exams-title">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">Padrão Oficial</span>
+              <h2 id="official-exams-title">Simulados Oficiais — {activeTrackInfo.code}</h2>
+            </div>
+            <span className="bank-count">{activeTrackInfo.passingPercentage}% para aprovação (26/40)</span>
+          </div>
+
+          <div className="official-exams-grid">
+            {trackOfficialExams.map((exam) => (
+              <article key={exam.id} className="official-exam-card">
+                <div>
+                  <div className="official-exam-card__header">
+                    <div>
+                      <h3 className="official-exam-card__title">{exam.title}</h3>
+                      <span className="exam-badge-tag">{exam.badge}</span>
+                    </div>
+                    <Award size={24} style={{ color: activeTrackInfo.accentColor }} />
+                  </div>
+                  <p className="official-exam-card__desc">{exam.description}</p>
+                </div>
+
+                <div className="official-exam-card__footer">
+                  <div className="track-card__meta">
+                    <span><BookOpenCheck size={14} /> 40 questões</span>
+                    <span>·</span>
+                    <span><Clock3 size={14} /> {exam.durationMinutes} min</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="button button--primary button--sm"
+                    onClick={() => handleStartOfficialExam(exam.id, exam.durationMinutes)}
+                  >
+                    Iniciar <ArrowRight size={16} />
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className={`performance-hero performance-hero--${performance.tone}`}>
         <div className="performance-hero__content">
-          <div className="performance-hero__label"><Sparkles size={16} /> Seu desempenho atual</div>
+          <div className="performance-hero__label"><Sparkles size={16} /> Desempenho em {activeTrackInfo.code}</div>
           <h2>{hasHistory ? performance.title : 'Seu ponto de partida'}</h2>
           <p>
             {hasHistory
               ? performance.description
-              : 'Faça seu primeiro simulado para desbloquear métricas e recomendações personalizadas.'}
+              : `Faça seu primeiro simulado de ${activeTrackInfo.shortTitle} para desbloquear métricas e recomendações.`}
           </p>
           <span className="indicator-note">Indicador de estudo — não representa regra oficial do exame.</span>
         </div>
@@ -103,7 +172,7 @@ export function DashboardPage() {
         <div className="section-heading">
           <div>
             <span className="eyebrow">Resumo</span>
-            <h2 id="summary-title">Sua preparação em números</h2>
+            <h2 id="summary-title">Sua preparação em {activeTrackInfo.code}</h2>
           </div>
         </div>
         <div className="stats-grid">
@@ -146,19 +215,19 @@ export function DashboardPage() {
         <div className="section-heading">
           <div>
             <span className="eyebrow">Praticar</span>
-            <h2 id="quick-actions-title">Escolha seu próximo treino</h2>
+            <h2 id="quick-actions-title">Modos de Treino — {activeTrackInfo.code}</h2>
           </div>
           <span className="bank-count">{questions.length} questões disponíveis</span>
         </div>
         <div className="action-grid">
           <Link className="action-card action-card--primary" to="/new">
             <span className="action-card__icon"><BrainCircuit size={24} /></span>
-            <div><strong>Novo simulado</strong><span>Completo ou por assunto</span></div>
+            <div><strong>Novo simulado</strong><span>Personalizado ou por assunto</span></div>
             <ArrowRight size={20} />
           </Link>
           <Link className="action-card" to="/new?mode=errors">
             <span className="action-card__icon"><RotateCcw size={23} /></span>
-            <div><strong>Treinar meus erros</strong><span>Reforce o que mais precisa</span></div>
+            <div><strong>Treinar meus erros</strong><span>Reforce suas dúvidas em {activeTrackInfo.code}</span></div>
             <ArrowRight size={20} />
           </Link>
           <Link className="action-card" to="/new?mode=favorites">

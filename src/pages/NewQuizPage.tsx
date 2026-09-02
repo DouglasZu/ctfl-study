@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   ArrowLeft,
   ArrowRight,
+  Award,
   BookOpen,
   Check,
   Clock3,
@@ -16,8 +17,10 @@ import {
 } from 'lucide-react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { ConfirmDialog } from '../components'
+import { TrackSelector } from '../components/TrackSelector'
 import type { QuizMode, TimerMode } from '../types'
 import { useStudyApp } from '../hooks/useStudyApp'
+import { OFFICIAL_EXAMS } from '../utils/quiz'
 
 const quantities = [10, 20, 30, 40] as const
 
@@ -27,31 +30,58 @@ const modes: Array<{
   description: string
   icon: typeof Layers3
 }> = [
-  { id: 'complete', title: 'Simulado completo', description: 'Questões variadas de todo o banco', icon: Layers3 },
-  { id: 'topics', title: 'Por assunto', description: 'Você escolhe os tópicos para praticar', icon: Focus },
-  { id: 'errors', title: 'Treinar meus erros', description: 'Prioriza suas dificuldades recorrentes', icon: RotateCcw },
+  { id: 'exam', title: 'Simulado Oficial (Padrão Exame)', description: '40 questões no tempo e regras oficiais', icon: Award },
+  { id: 'complete', title: 'Treino Personalizado', description: 'Escolha quantidade e ritmo livremente', icon: Layers3 },
+  { id: 'topics', title: 'Por Assunto / Capítulo', description: 'Pratique capítulos específicos', icon: Focus },
+  { id: 'errors', title: 'Treinar meus erros', description: 'Prioriza suas dificuldades nesta trilha', icon: RotateCcw },
   { id: 'favorites', title: 'Estudar favoritas', description: 'Use as questões que você salvou', icon: Star },
 ]
 
 export function NewQuizPage() {
-  const { questions, history, favorites, settings, draft, startQuiz } = useStudyApp()
+  const { questions, history, favorites, settings, draft, startQuiz, activeTrack, activeTrackInfo } = useStudyApp()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const requestedMode = searchParams.get('mode')
   const initialMode: QuizMode = modes.some((mode) => mode.id === requestedMode)
     ? (requestedMode as QuizMode)
-    : 'complete'
+    : 'exam'
+
+  const trackOfficialExams = useMemo(
+    () => OFFICIAL_EXAMS.filter((exam) => exam.track === activeTrack),
+    [activeTrack],
+  )
 
   const [mode, setMode] = useState<QuizMode>(initialMode)
+  const [selectedExamId, setSelectedExamId] = useState<string>(() => trackOfficialExams[0]?.id || '')
   const [questionCount, setQuestionCount] = useState(settings.defaultQuestionCount)
   const [selectedTopics, setSelectedTopics] = useState<string[]>([])
   const [timerMode, setTimerMode] = useState<TimerMode>(settings.defaultTimerMode)
-  const [durationMinutes, setDurationMinutes] = useState(settings.examDurationMinutes)
+  const [durationMinutes, setDurationMinutes] = useState(activeTrackInfo.durationMinutes)
   const [shuffleOptions, setShuffleOptions] = useState(settings.shuffleOptions)
   const [replaceOpen, setReplaceOpen] = useState(false)
   const [error, setError] = useState('')
 
-  useEffect(() => setMode(initialMode), [initialMode])
+  useEffect(() => {
+    if (requestedMode && modes.some((m) => m.id === requestedMode)) {
+      setMode(requestedMode as QuizMode)
+    }
+  }, [requestedMode])
+
+  useEffect(() => {
+    const firstExam = trackOfficialExams[0]
+    if (firstExam && !trackOfficialExams.some((e) => e.id === selectedExamId)) {
+      setSelectedExamId(firstExam.id)
+    }
+    setDurationMinutes(activeTrackInfo.durationMinutes)
+  }, [activeTrack, trackOfficialExams, selectedExamId, activeTrackInfo.durationMinutes])
+
+  useEffect(() => {
+    if (mode === 'exam') {
+      setQuestionCount(40)
+      setTimerMode('exam')
+      setDurationMinutes(activeTrackInfo.durationMinutes)
+    }
+  }, [mode, activeTrackInfo.durationMinutes])
 
   const topics = useMemo(() => {
     const unique = new Map<string, { topic: string; chapter: string; count: number }>()
@@ -101,10 +131,11 @@ export function NewQuizPage() {
     setError('')
     const result = startQuiz({
       mode,
-      questionCount,
+      examId: mode === 'exam' ? selectedExamId : undefined,
+      questionCount: mode === 'exam' ? 40 : questionCount,
       topics: mode === 'topics' ? selectedTopics : [],
-      timerMode,
-      durationMinutes: timerMode === 'exam' ? durationMinutes : undefined,
+      timerMode: mode === 'exam' ? 'exam' : timerMode,
+      durationMinutes: (timerMode === 'exam' || mode === 'exam') ? durationMinutes : undefined,
       shuffleOptions,
     })
 
@@ -129,11 +160,14 @@ export function NewQuizPage() {
       <header className="page-heading page-heading--with-back">
         <Link className="icon-button" to="/" aria-label="Voltar ao início"><ArrowLeft size={20} /></Link>
         <div>
-          <span className="eyebrow">Preparar sessão</span>
+          <span className="eyebrow">{activeTrackInfo.code} — Sessão de Estudo</span>
           <h1>Novo simulado</h1>
-          <p>Configure seu treino em poucos passos.</p>
+          <p>Configure seu treino para a certificação {activeTrackInfo.shortTitle}.</p>
         </div>
       </header>
+
+      {/* Seletor de Certificação */}
+      <TrackSelector compact showDescription={false} />
 
       <div className="setup-layout">
         <div className="setup-main">
@@ -141,7 +175,7 @@ export function NewQuizPage() {
             <div className="setup-section__number">1</div>
             <div className="setup-section__body">
               <div className="setup-section__heading">
-                <div><h2 id="mode-title">Como você quer praticar?</h2><p>Escolha o formato desta sessão.</p></div>
+                <div><h2 id="mode-title">Como você quer praticar?</h2><p>Escolha o formato desta sessão para {activeTrackInfo.code}.</p></div>
               </div>
               <div className="mode-grid">
                 {modes.map((item) => {
@@ -167,7 +201,7 @@ export function NewQuizPage() {
                   {mode === 'errors' ? <RotateCcw size={18} /> : <Star size={18} />}
                   <span>
                     {mode === 'errors'
-                      ? 'Conclua algumas questões incorretamente para liberar este modo.'
+                      ? `Conclua algumas questões de ${activeTrackInfo.code} incorretamente para liberar este modo.`
                       : 'Marque questões como favoritas durante um simulado ou na revisão.'}
                   </span>
                 </div>
@@ -175,11 +209,47 @@ export function NewQuizPage() {
               {questions.length === 0 && (
                 <div className="inline-notice inline-notice--warning" role="alert">
                   <BookOpen size={18} />
-                  <span>O banco não possui questões válidas. Revise o arquivo JSON antes de iniciar.</span>
+                  <span>O banco não possui questões válidas para {activeTrackInfo.code}.</span>
                 </div>
               )}
             </div>
           </section>
+
+          {mode === 'exam' && trackOfficialExams.length > 0 && (
+            <section className="setup-section" aria-labelledby="exam-select-title">
+              <div className="setup-section__number">2</div>
+              <div className="setup-section__body">
+                <div className="setup-section__heading">
+                  <div>
+                    <h2 id="exam-select-title">Escolha o simulado oficial</h2>
+                    <p>Simulados balanceados no padrão de 40 questões da prova.</p>
+                  </div>
+                </div>
+                <div className="mode-grid">
+                  {trackOfficialExams.map((exam) => {
+                    const isSelected = selectedExamId === exam.id
+                    return (
+                      <button
+                        key={exam.id}
+                        type="button"
+                        className={`mode-card${isSelected ? ' mode-card--selected' : ''}`}
+                        onClick={() => setSelectedExamId(exam.id)}
+                        aria-pressed={isSelected}
+                      >
+                        <span className="mode-card__icon"><Award size={22} /></span>
+                        <span>
+                          <strong>{exam.title}</strong>
+                          <small>{exam.description}</small>
+                          <span className="exam-badge-tag" style={{ marginTop: '0.25rem' }}>{exam.badge}</span>
+                        </span>
+                        <span className="mode-card__check">{isSelected && <Check size={15} />}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </section>
+          )}
 
           {mode === 'topics' && (
             <section className="setup-section" aria-labelledby="topics-title">
@@ -214,31 +284,33 @@ export function NewQuizPage() {
             </section>
           )}
 
-          <section className="setup-section" aria-labelledby="count-title">
-            <div className="setup-section__number">{mode === 'topics' ? 3 : 2}</div>
-            <div className="setup-section__body">
-              <div className="setup-section__heading">
-                <div><h2 id="count-title">Quantidade de questões</h2><p>Se houver menos disponíveis, usaremos o total existente.</p></div>
-                <span className="availability"><BookOpen size={15} /> {availableCount} disponíveis</span>
+          {mode !== 'exam' && (
+            <section className="setup-section" aria-labelledby="count-title">
+              <div className="setup-section__number">{mode === 'topics' ? 3 : 2}</div>
+              <div className="setup-section__body">
+                <div className="setup-section__heading">
+                  <div><h2 id="count-title">Quantidade de questões</h2><p>Se houver menos disponíveis, usaremos o total existente.</p></div>
+                  <span className="availability"><BookOpen size={15} /> {availableCount} disponíveis</span>
+                </div>
+                <div className="quantity-control" role="group" aria-label="Quantidade de questões">
+                  {quantities.map((quantity) => (
+                    <button
+                      type="button"
+                      key={quantity}
+                      className={questionCount === quantity ? 'is-selected' : ''}
+                      aria-pressed={questionCount === quantity}
+                      onClick={() => setQuestionCount(quantity)}
+                    >
+                      <strong>{quantity}</strong><span>questões</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="quantity-control" role="group" aria-label="Quantidade de questões">
-                {quantities.map((quantity) => (
-                  <button
-                    type="button"
-                    key={quantity}
-                    className={questionCount === quantity ? 'is-selected' : ''}
-                    aria-pressed={questionCount === quantity}
-                    onClick={() => setQuestionCount(quantity)}
-                  >
-                    <strong>{quantity}</strong><span>questões</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </section>
+            </section>
+          )}
 
           <section className="setup-section" aria-labelledby="timer-title">
-            <div className="setup-section__number">{mode === 'topics' ? 4 : 3}</div>
+            <div className="setup-section__number">{mode === 'topics' ? 4 : mode === 'exam' ? 3 : 3}</div>
             <div className="setup-section__body">
               <div className="setup-section__heading">
                 <div><h2 id="timer-title">Ritmo do simulado</h2><p>Estude sem pressão ou pratique com limite de tempo.</p></div>
@@ -259,7 +331,7 @@ export function NewQuizPage() {
                   onClick={() => setTimerMode('exam')}
                   aria-pressed={timerMode === 'exam'}
                 >
-                  <Clock3 size={21} /><span><strong>Modo prova</strong><small>Com cronômetro regressivo</small></span>
+                  <Clock3 size={21} /><span><strong>Modo prova ({activeTrackInfo.durationMinutes} min)</strong><small>Com cronômetro regressivo</small></span>
                   {timerMode === 'exam' && <Check size={17} />}
                 </button>
               </div>
@@ -281,11 +353,12 @@ export function NewQuizPage() {
 
         <aside className="setup-summary">
           <div className="setup-summary__icon"><Sparkles size={23} /></div>
-          <span className="eyebrow">Tudo pronto</span>
+          <span className="eyebrow">{activeTrackInfo.code}</span>
           <h2>Resumo da sessão</h2>
           <dl>
+            <div><dt>Certificação</dt><dd>{activeTrackInfo.shortTitle}</dd></div>
             <div><dt>Formato</dt><dd>{modes.find((item) => item.id === mode)?.title}</dd></div>
-            <div><dt>Questões</dt><dd>{Math.min(questionCount, availableCount)}</dd></div>
+            <div><dt>Questões</dt><dd>{mode === 'exam' ? 40 : Math.min(questionCount, availableCount)}</dd></div>
             <div><dt>Assuntos</dt><dd>{mode === 'topics' && selectedTopics.length ? selectedTopics.length : 'Todos'}</dd></div>
             <div><dt>Tempo</dt><dd>{timerMode === 'exam' ? `${durationMinutes} min` : 'Livre'}</dd></div>
           </dl>

@@ -26,7 +26,7 @@ function ScrollToTop() {
 }
 
 function StandardLayout() {
-  const { settings, setTheme } = useStudyApp()
+  const { settings, setTheme, activeTrackInfo } = useStudyApp()
   const [resolvedTheme, setResolvedTheme] = useState(() => resolveTheme(settings.theme))
 
   useEffect(() => {
@@ -39,12 +39,14 @@ function StandardLayout() {
 
   return (
     <AppShell
+      brandName="Simulados ISTQB"
+      brandSubtitle={activeTrackInfo.shortTitle}
       theme={resolvedTheme}
       onThemeChange={setTheme}
       sidebarFooter={
         <div className="syllabus-pill">
           <BookOpenCheck size={16} />
-          <span><small>Conteúdo</small><strong>CTFL · {settings.syllabusVersion}</strong></span>
+          <span><small>Trilha Ativa</small><strong>{activeTrackInfo.code} · {activeTrackInfo.shortTitle}</strong></span>
         </div>
       }
     >

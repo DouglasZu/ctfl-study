@@ -1,5 +1,7 @@
 import type {
   ActiveQuiz,
+  CertificationTrack,
+  OfficialExamInfo,
   Question,
   Quiz,
   QuizHistory,
@@ -7,6 +9,85 @@ import type {
   TimerMode,
 } from '../types'
 import { calculateUserStatistics } from './statistics'
+
+export const OFFICIAL_EXAMS: readonly OfficialExamInfo[] = [
+  // CTFL (Foundation Level)
+  {
+    id: 'ctfl-mock-1',
+    track: 'CTFL',
+    title: 'Simulado Oficial CTFL 1',
+    badge: 'CTFL Mock 1',
+    description: 'Exame oficial padrão ISTQB/BSTQB com 40 questões balanceadas conforme o Syllabus CTFL 4.0.',
+    questionCount: 40,
+    durationMinutes: 60,
+  },
+  {
+    id: 'ctfl-mock-2',
+    track: 'CTFL',
+    title: 'Simulado Oficial CTFL 2',
+    badge: 'CTFL Mock 2',
+    description: 'Segundo exame oficial completo para consolidar todo o conteúdo e técnicas fundamentais.',
+    questionCount: 40,
+    durationMinutes: 60,
+  },
+  // CTAL-TAE (Test Automation Engineer)
+  {
+    id: 'tae-mock-1',
+    track: 'CTAL-TAE',
+    title: 'Simulado Oficial CTAL-TAE 1',
+    badge: 'TAE Mock 1',
+    description: 'Exame avançado com 40 questões sobre Arquitetura TAA/TAS, Estratégia de Automação e Riscos.',
+    questionCount: 40,
+    durationMinutes: 90,
+  },
+  {
+    id: 'tae-mock-2',
+    track: 'CTAL-TAE',
+    title: 'Simulado Oficial CTAL-TAE 2',
+    badge: 'TAE Mock 2',
+    description: 'Segundo exame avançado cobrindo Métricas, Implantação, Manutenção e Evolução da Automação.',
+    questionCount: 40,
+    durationMinutes: 90,
+  },
+  // CT-FT (Financial Tester)
+  {
+    id: 'ft-mock-1',
+    track: 'CT-FT',
+    title: 'Simulado Oficial CT-FT 1',
+    badge: 'FT Mock 1',
+    description: 'Exame especialista com 40 questões sobre Sistemas Financeiros, Pagamentos/Pix, Reconciliação e BACEN.',
+    questionCount: 40,
+    durationMinutes: 60,
+  },
+  {
+    id: 'ft-mock-2',
+    track: 'CT-FT',
+    title: 'Simulado Oficial CT-FT 2',
+    badge: 'FT Mock 2',
+    description: 'Segundo exame oficial com foco em Fraude, Risco de Crédito, PCI-DSS e Segurança Financeira.',
+    questionCount: 40,
+    durationMinutes: 60,
+  },
+  // CT-AI / CT-GenAI (AI & Generative AI Testing)
+  {
+    id: 'ai-mock-1',
+    track: 'CT-AI',
+    title: 'Simulado Oficial CT-AI 1',
+    badge: 'AI Mock 1',
+    description: 'Exame especialista com 40 questões sobre Machine Learning, Teste Metamórfico e Métricas de IA.',
+    questionCount: 40,
+    durationMinutes: 60,
+  },
+  {
+    id: 'ai-mock-2',
+    track: 'CT-AI',
+    title: 'Simulado Oficial CT-GenAI 2',
+    badge: 'GenAI Mock 2',
+    description: 'Segundo exame oficial focado em IA Generativa, LLMs, Prompt Injection, Alucinação e Ética.',
+    questionCount: 40,
+    durationMinutes: 60,
+  },
+] as const
 
 export type RandomSource = () => number
 
@@ -52,8 +133,11 @@ export function shuffleQuestionOptions(
 }
 
 export interface QuestionFilters {
+  track?: CertificationTrack
   topics?: readonly string[]
   chapters?: readonly string[]
+  examId?: string
+  kLevels?: readonly string[]
 }
 
 export function filterQuestions(
@@ -63,11 +147,16 @@ export function filterQuestions(
   const topicSet = filters.topics && filters.topics.length > 0 ? new Set(filters.topics) : null
   const chapterSet =
     filters.chapters && filters.chapters.length > 0 ? new Set(filters.chapters) : null
+  const kLevelSet =
+    filters.kLevels && filters.kLevels.length > 0 ? new Set(filters.kLevels) : null
 
   return questions.filter(
     (question) =>
+      (!filters.track || (question.track ?? 'CTFL') === filters.track) &&
       (!topicSet || topicSet.has(question.topic)) &&
-      (!chapterSet || chapterSet.has(question.chapter)),
+      (!chapterSet || chapterSet.has(question.chapter)) &&
+      (!filters.examId || question.examId === filters.examId) &&
+      (!kLevelSet || (question.kLevel && kLevelSet.has(question.kLevel))),
   )
 }
 
@@ -265,6 +354,8 @@ export interface CreateQuizOptions {
   topics?: string[]
   timerMode?: TimerMode
   durationMinutes?: number
+  examId?: string
+  track?: CertificationTrack
 }
 
 export function createQuiz(
@@ -276,6 +367,7 @@ export function createQuiz(
       ? options.createdAt.toISOString()
       : new Date(options.createdAt ?? Date.now()).toISOString()
   const timerMode = options.timerMode ?? 'free'
+  const track = options.track ?? questions[0]?.track ?? 'CTFL'
 
   return {
     id: options.id ?? createId('quiz'),
@@ -284,6 +376,8 @@ export function createQuiz(
     mode: options.mode ?? 'complete',
     topics: options.topics ?? [...new Set(questions.map((question) => question.topic))],
     timerMode,
+    track,
+    ...(options.examId ? { examId: options.examId } : {}),
     ...(timerMode === 'exam' && options.durationMinutes
       ? { durationMinutes: options.durationMinutes }
       : {}),
@@ -304,6 +398,8 @@ export function createActiveQuiz(quiz: Quiz): ActiveQuiz {
     mode: quiz.mode,
     topics: [...quiz.topics],
     timerMode: quiz.timerMode,
+    track: quiz.track,
+    ...(quiz.examId ? { examId: quiz.examId } : {}),
     ...(durationMinutes === undefined ? {} : { durationMinutes }),
     ...(durationMinutes === undefined ? {} : { remainingSeconds: durationMinutes * 60 }),
   }
@@ -320,6 +416,8 @@ export function quizFromActiveQuiz(activeQuiz: ActiveQuiz): Quiz {
     mode: activeQuiz.mode,
     topics: activeQuiz.topics,
     timerMode: activeQuiz.timerMode,
+    track: activeQuiz.track,
+    ...(activeQuiz.examId ? { examId: activeQuiz.examId } : {}),
     ...(durationMinutes === undefined ? {} : { durationMinutes }),
   }
 }

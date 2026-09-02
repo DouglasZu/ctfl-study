@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   AlertTriangle,
+  Award,
   Check,
   CloudDownload,
   Database,
@@ -17,7 +18,8 @@ import {
   Upload,
   X,
 } from 'lucide-react'
-import type { AppSettings, Theme } from '../types'
+import { TrackSelector } from '../components/TrackSelector'
+import { CERTIFICATION_TRACKS, type AppSettings, type Theme } from '../types'
 import { useStudyApp } from '../hooks/useStudyApp'
 
 interface BeforeInstallPromptEvent extends Event {
@@ -36,7 +38,7 @@ type Notice = { tone: 'success' | 'error'; message: string } | null
 export function SettingsPage() {
   const {
     settings,
-    questions,
+    allQuestions,
     questionBankIssues,
     draft,
     setTheme,
@@ -158,6 +160,9 @@ export function SettingsPage() {
         <div><span className="eyebrow">Personalização e dados</span><h1>Configurações</h1><p>Ajuste sua experiência e cuide dos dados salvos neste dispositivo.</p></div>
       </header>
 
+      {/* Seletor de Trilha de Certificação */}
+      <TrackSelector />
+
       {notice && (
         <div className={`toast-notice toast-notice--${notice.tone}`} role="status">
           {notice.tone === 'success' ? <Check size={18} /> : <AlertTriangle size={18} />}
@@ -198,10 +203,24 @@ export function SettingsPage() {
         </section>
 
         <section className="settings-card" aria-labelledby="content-title">
-          <header className="settings-card__header"><span><FileCheck2 size={21} /></span><div><h2 id="content-title">Conteúdo</h2><p>Status do banco de questões carregado no projeto.</p></div></header>
+          <header className="settings-card__header"><span><FileCheck2 size={21} /></span><div><h2 id="content-title">Conteúdo e Bancos de Questões</h2><p>Status dos bancos de questões carregados no projeto.</p></div></header>
           <div className={`content-status${questionBankIssues.length ? ' content-status--error' : ''}`}>
             <span className="content-status__icon">{questionBankIssues.length ? <AlertTriangle size={23} /> : <Check size={23} />}</span>
-            <div><strong>{questionBankIssues.length ? 'Banco com problemas de configuração' : 'Banco validado com sucesso'}</strong><span>{questions.length} questões válidas · CTFL · {settings.syllabusVersion}</span></div>
+            <div><strong>{questionBankIssues.length ? 'Banco com problemas de configuração' : 'Banco validado com sucesso'}</strong><span>{allQuestions.length} questões totais (160 no padrão ISTQB) · 4 trilhas</span></div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', marginTop: '0.75rem' }}>
+            {CERTIFICATION_TRACKS.map((t) => {
+              const count = allQuestions.filter((q) => (q.track ?? 'CTFL') === t.id).length
+              return (
+                <div key={t.id} style={{ padding: '0.625rem', border: '1px solid var(--color-border)', borderRadius: '0.5rem', background: 'var(--color-surface-muted)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                    <Award size={16} style={{ color: t.accentColor }} />
+                    <strong style={{ fontSize: '0.8125rem' }}>{t.code}</strong>
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-subtle)' }}>{count} questões disponíveis</div>
+                </div>
+              )
+            })}
           </div>
           {questionBankIssues.length > 0 && <ul className="validation-issues">{questionBankIssues.map((issue) => <li key={issue}>{issue}</li>)}</ul>}
           <p className="settings-help">Para adicionar conteúdo, edite <code>src/data/questions.json</code>. IDs duplicados, alternativas vazias e respostas fora do intervalo são rejeitados com segurança.</p>

@@ -35,6 +35,10 @@ export const questionSchema: z.ZodType<Question> = z
     chapter: nonEmptyText,
     topic: nonEmptyText,
     difficulty: z.enum(['easy', 'medium', 'hard']),
+    kLevel: z.enum(['K1', 'K2', 'K3']).optional(),
+    syllabusRef: z.string().trim().optional(),
+    examId: z.string().trim().optional(),
+    track: z.enum(['CTFL', 'CTAL-TAE', 'CT-FT', 'CT-AI']).optional(),
   })
   .superRefine((question, context) => {
     if (question.correctAnswer >= question.options.length) {
@@ -187,7 +191,9 @@ export const quizResultSchema: z.ZodType<QuizResult> = z
     quizId: nonEmptyText,
     startedAt: isoDate,
     completedAt: isoDate,
-    mode: z.enum(['complete', 'topics', 'errors', 'favorites']),
+    mode: z.enum(['complete', 'topics', 'errors', 'favorites', 'exam']),
+    examId: z.string().trim().optional(),
+    track: z.enum(['CTFL', 'CTAL-TAE', 'CT-FT', 'CT-AI']).optional(),
     totalQuestions: nonNegativeInteger,
     answeredQuestions: nonNegativeInteger,
     correctAnswers: nonNegativeInteger,
@@ -259,6 +265,7 @@ export const userStatisticsSchema: z.ZodType<UserStatistics> = z.object({
 })
 
 export const appSettingsSchema: z.ZodType<AppSettings> = z.object({
+  activeTrack: z.enum(['CTFL', 'CTAL-TAE', 'CT-FT', 'CT-AI']),
   defaultQuestionCount: z.union([z.literal(10), z.literal(20), z.literal(30), z.literal(40)]),
   shuffleOptions: z.boolean(),
   defaultTimerMode: z.enum(['free', 'exam']),
@@ -277,11 +284,13 @@ export const activeQuizSchema: z.ZodType<ActiveQuiz> = z
     currentIndex: nonNegativeInteger,
     startedAt: isoDate,
     updatedAt: isoDate,
-    mode: z.enum(['complete', 'topics', 'errors', 'favorites']),
+    mode: z.enum(['complete', 'topics', 'errors', 'favorites', 'exam']),
     topics: z.array(nonEmptyText),
     timerMode: z.enum(['free', 'exam']),
     durationMinutes: z.number().int().positive().optional(),
     remainingSeconds: nonNegativeInteger.optional(),
+    examId: z.string().trim().optional(),
+    track: z.enum(['CTFL', 'CTAL-TAE', 'CT-FT', 'CT-AI']).optional(),
   })
   .superRefine((draft, context) => {
     if (draft.questions.length > 0 && draft.currentIndex >= draft.questions.length) {

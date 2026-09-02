@@ -42,11 +42,30 @@ export function ReviewPage() {
                   {item.isCorrect ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
                   {item.isCorrect ? 'Correta' : item.answered ? 'Incorreta' : 'Não respondida'}
                 </span>
-                <button className={`icon-button favorite-review${isFavorite ? ' is-active' : ''}`} type="button" onClick={() => toggleFavorite(item.questionId)} aria-label={isFavorite ? 'Remover das favoritas' : 'Adicionar às favoritas'}>
+                <button
+                  className={`icon-button favorite-review${isFavorite ? ' is-active' : ''}`}
+                  type="button"
+                  onClick={() => toggleFavorite(item.questionId)}
+                  aria-label={isFavorite ? 'Remover das favoritas' : 'Adicionar às favoritas'}
+                >
                   <Star size={19} fill={isFavorite ? 'currentColor' : 'none'} />
                 </button>
               </header>
-              <div className="review-card__meta"><span>Capítulo {item.chapter}</span><span>{item.topic}</span></div>
+              <div className="review-card__meta">
+                {item.question.track && (
+                  <span className="exam-badge-tag">{item.question.track}</span>
+                )}
+                {item.question.kLevel && (
+                  <span className={`k-level-badge k-level-badge--${item.question.kLevel.toLowerCase()}`}>
+                    {item.question.kLevel}
+                  </span>
+                )}
+                {item.question.syllabusRef && (
+                  <span className="k-level-badge">{item.question.syllabusRef}</span>
+                )}
+                <span>Capítulo {item.chapter}</span>
+                <span>{item.topic}</span>
+              </div>
               <h2>{item.question.question}</h2>
               <div className="review-options">
                 {item.question.options.map((option, optionIndex) => {

@@ -191,7 +191,34 @@ describe('error training', () => {
 
 describe('question validation', () => {
   it('loads the repository question bank through the runtime validator', () => {
-    expect(parseQuestions(rawQuestions).length).toBeGreaterThan(0)
+    const loaded = parseQuestions(rawQuestions)
+    expect(loaded).toHaveLength(160)
+  })
+
+  it('contains exactly 40 questions per certification track without overlap', () => {
+    const loaded = parseQuestions(rawQuestions)
+    const ctfl = loaded.filter((q) => q.track === 'CTFL')
+    const ctalTae = loaded.filter((q) => q.track === 'CTAL-TAE')
+    const ctFt = loaded.filter((q) => q.track === 'CT-FT')
+    const ctAi = loaded.filter((q) => q.track === 'CT-AI')
+
+    expect(ctfl).toHaveLength(40)
+    expect(ctalTae).toHaveLength(40)
+    expect(ctFt).toHaveLength(40)
+    expect(ctAi).toHaveLength(40)
+
+    // Ensure all question IDs are completely unique across all tracks
+    const allIds = new Set(loaded.map((q) => String(q.id)))
+    expect(allIds.size).toBe(160)
+
+    // Ensure all questions have valid options and correctAnswer in range
+    loaded.forEach((q) => {
+      expect(q.options.length).toBeGreaterThanOrEqual(2)
+      expect(q.correctAnswer).toBeGreaterThanOrEqual(0)
+      expect(q.correctAnswer).toBeLessThan(q.options.length)
+      expect(q.explanation.length).toBeGreaterThan(10)
+      expect(['K1', 'K2', 'K3']).toContain(q.kLevel)
+    })
   })
 
   it('accepts a valid object wrapper and rejects duplicate ids', () => {

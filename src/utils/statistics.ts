@@ -194,6 +194,8 @@ export function calculateQuizResult(
     startedAt: startedDate.toISOString(),
     completedAt: completedDate.toISOString(),
     mode: quiz.mode,
+    ...(quiz.examId ? { examId: quiz.examId } : {}),
+    ...(quiz.track ? { track: quiz.track } : {}),
     totalQuestions: questionResults.length,
     answeredQuestions,
     correctAnswers,

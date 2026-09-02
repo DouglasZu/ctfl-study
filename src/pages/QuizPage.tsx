@@ -126,6 +126,17 @@ export function QuizPage() {
       <div className="quiz-layout">
         <main className="quiz-main">
           <div className="question-meta">
+            {currentQuestion.track && (
+              <span className="exam-badge-tag">{currentQuestion.track}</span>
+            )}
+            {currentQuestion.kLevel && (
+              <span className={`k-level-badge k-level-badge--${currentQuestion.kLevel.toLowerCase()}`}>
+                {currentQuestion.kLevel}
+              </span>
+            )}
+            {currentQuestion.syllabusRef && (
+              <span className="k-level-badge">{currentQuestion.syllabusRef}</span>
+            )}
             <span>Capítulo {currentQuestion.chapter}</span>
             <span>{currentQuestion.topic}</span>
             <span className={`difficulty difficulty--${currentQuestion.difficulty}`}>

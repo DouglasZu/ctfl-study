@@ -5352,3 +5352,243 @@
     grid-column: span 2;
   }
 }
+
+/* ==========================================================================
+   Multi-Certification Track Selector & Official Exam Cards Styles
+   ========================================================================== */
+
+.track-selector-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.track-selector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.track-selector-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-subtle, #52605b);
+}
+
+.track-selector-title__icon {
+  color: var(--color-primary, #0c7a5b);
+}
+
+.track-selector-badge-current {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  background-color: var(--color-primary-subtle, #e6f4ef);
+  color: var(--color-primary, #0c7a5b);
+}
+
+.track-selector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.875rem;
+}
+
+.track-selector-grid--compact {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.5rem;
+}
+
+.track-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  background-color: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e1e7e4);
+  border-radius: var(--radius-lg, 0.75rem);
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.track-card:hover {
+  border-color: var(--color-border-hover, #b8c8c2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.track-card--active {
+  background-color: var(--color-surface-raised, #ffffff);
+}
+
+.track-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 0.625rem;
+}
+
+.track-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-md, 0.5rem);
+  background-color: var(--color-surface-muted, #f0f4f2);
+}
+
+.track-card__code {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted, #72847e);
+}
+
+.track-card__check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.track-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 100%;
+}
+
+.track-card__title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-text, #18352d);
+}
+
+.track-card__description {
+  font-size: 0.75rem;
+  color: var(--color-text-subtle, #52605b);
+  line-height: 1.35;
+  margin-bottom: 0.25rem;
+}
+
+.track-card__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--color-text-muted, #72847e);
+}
+
+/* Badges for K-Levels and Syllabus Reference */
+.k-level-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  background-color: var(--color-surface-muted, #edf3f0);
+  color: var(--color-text, #18352d);
+  border: 1px solid var(--color-border, #d8e2de);
+}
+
+.k-level-badge--k1 {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.k-level-badge--k2 {
+  background-color: #f0fdf4;
+  color: #15803d;
+  border-color: #bbf7d0;
+}
+
+.k-level-badge--k3 {
+  background-color: #fefce8;
+  color: #a16207;
+  border-color: #fef08a;
+}
+
+.exam-badge-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background-color: var(--color-primary-subtle, #e6f4ef);
+  color: var(--color-primary, #0c7a5b);
+}
+
+/* Official Exams Dashboard Grid */
+.official-exams-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.official-exam-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e1e7e4);
+  border-radius: var(--radius-lg, 0.75rem);
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.official-exam-card:hover {
+  border-color: var(--color-primary, #0c7a5b);
+  box-shadow: 0 4px 16px rgba(12, 122, 91, 0.08);
+  transform: translateY(-2px);
+}
+
+.official-exam-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.official-exam-card__title {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--color-text, #18352d);
+  margin-bottom: 0.25rem;
+}
+
+.official-exam-card__desc {
+  font-size: 0.8125rem;
+  color: var(--color-text-subtle, #52605b);
+  line-height: 1.4;
+  margin-bottom: 1rem;
+}
+
+.official-exam-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border, #e1e7e4);
+}
+
