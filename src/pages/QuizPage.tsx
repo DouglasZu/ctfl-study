@@ -28,6 +28,7 @@ export function QuizPage() {
     toggleQuestionReview,
     toggleFavorite,
     finishQuiz,
+    discardQuiz,
   } = useStudyApp()
   const navigate = useNavigate()
   const [navigatorOpen, setNavigatorOpen] = useState(false)
@@ -251,10 +252,11 @@ export function QuizPage() {
           <section className="modal-card" role="alertdialog" aria-modal="true" aria-labelledby="leave-title" onMouseDown={(event) => event.stopPropagation()}>
             <button className="modal-card__close" type="button" onClick={() => setLeaveOpen(false)} aria-label="Fechar"><X size={20} /></button>
             <span className="modal-card__icon"><Home size={24} /></span>
-            <h2 id="leave-title">Sair por enquanto?</h2>
-            <p>Seu progresso já está salvo neste dispositivo. Você poderá continuar depois.</p>
-            <div className="modal-card__actions">
+            <h2 id="leave-title">Sair do simulado?</h2>
+            <p>Seu progresso pode ser mantido para você continuar depois, ou você pode descartá-lo agora.</p>
+            <div className="modal-card__actions" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
               <button className="button button--ghost" type="button" onClick={() => setLeaveOpen(false)}>Permanecer</button>
+              <button className="button button--danger" type="button" onClick={() => { discardQuiz(); navigate('/') }}>Descartar</button>
               <button className="button button--primary" type="button" onClick={() => navigate('/')}>Salvar e sair</button>
             </div>
           </section>

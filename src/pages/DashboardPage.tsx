@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   ArrowRight,
   Award,
@@ -12,9 +13,11 @@ import {
   Sparkles,
   Star,
   Target,
+  Trash2,
   Trophy,
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
+import { ConfirmDialog } from '../components'
 import { TrackSelector } from '../components/TrackSelector'
 import { useStudyApp } from '../hooks/useStudyApp'
 import { OFFICIAL_EXAMS } from '../utils/quiz'
@@ -49,8 +52,22 @@ const classificationCopy = {
 } as const
 
 export function DashboardPage() {
-  const { statistics, history, draft, favorites, questions, classification, activeTrack, activeTrackInfo, startQuiz } = useStudyApp()
+  const {
+    statistics,
+    history,
+    draft,
+    draftTrackInfo,
+    continueDraft,
+    discardQuiz,
+    favorites,
+    questions,
+    classification,
+    activeTrack,
+    activeTrackInfo,
+    startQuiz,
+  } = useStudyApp()
   const navigate = useNavigate()
+  const [discardOpen, setDiscardOpen] = useState(false)
   const performance = classificationCopy[classification.key]
   const latest = history.at(0)
   const hasHistory = history.length > 0
@@ -70,6 +87,16 @@ export function DashboardPage() {
     if (outcome.ok) {
       navigate('/quiz')
     }
+  }
+
+  function handleContinue() {
+    continueDraft()
+    navigate('/quiz')
+  }
+
+  function handleConfirmDiscard() {
+    discardQuiz()
+    setDiscardOpen(false)
   }
 
   return (
@@ -92,17 +119,42 @@ export function DashboardPage() {
         <section className="resume-banner" aria-label="Simulado em andamento">
           <div className="resume-banner__icon"><Clock3 size={22} /></div>
           <div className="resume-banner__copy">
-            <strong>Você tem um simulado em andamento ({activeTrackInfo.shortTitle})</strong>
+            <strong>Você tem um simulado em andamento ({draftTrackInfo.code} · {draftTrackInfo.shortTitle})</strong>
             <span>
               {Object.values(draft.answers).filter((answer) => answer !== null).length} de{' '}
               {draft.questions.length} questões respondidas
             </span>
           </div>
-          <Link className="button button--secondary" to="/quiz">
-            Continuar <ArrowRight size={17} />
-          </Link>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="button button--ghost button--sm"
+              onClick={() => setDiscardOpen(true)}
+              style={{ color: 'var(--color-text-subtle)' }}
+            >
+              <Trash2 size={15} /> Descartar
+            </button>
+            <button
+              type="button"
+              className="button button--secondary"
+              onClick={handleContinue}
+            >
+              Continuar <ArrowRight size={17} />
+            </button>
+          </div>
         </section>
       )}
+
+      <ConfirmDialog
+        open={discardOpen}
+        title="Descartar simulado em andamento?"
+        description={`O progresso de ${draft ? Object.values(draft.answers).filter((a) => a !== null).length : 0} questões respondidas será perdido.`}
+        cancelLabel="Voltar"
+        confirmLabel="Sim, descartar"
+        confirmVariant="danger"
+        onClose={() => setDiscardOpen(false)}
+        onConfirm={handleConfirmDiscard}
+      />
 
       {/* Simulados Oficiais Pré-Configurados da Trilha */}
       {trackOfficialExams.length > 0 && (

@@ -60,6 +60,8 @@ interface StudyAppValue {
   favorites: QuestionId[]
   settings: AppSettings
   draft: ActiveQuiz | null
+  draftTrackInfo: CertificationTrackInfo
+  continueDraft: () => void
   classification: PerformanceClassification
   startQuiz: (setup: QuizSetup) => StartQuizOutcome
   selectAnswer: (questionId: QuestionId, selectedAnswer: number) => void
@@ -135,6 +137,12 @@ export function StudyAppProvider({ children }: { children: ReactNode }) {
     [activeTrack],
   )
 
+  const draftTrack = rawDraft?.track ?? activeTrack
+  const draftTrackInfo: CertificationTrackInfo = useMemo(
+    () => (CERTIFICATION_TRACKS.find((track) => track.id === draftTrack) ?? CERTIFICATION_TRACKS[0]) as CertificationTrackInfo,
+    [draftTrack],
+  )
+
   const trackQuestions = useMemo(
     () => validQuestions.filter((q) => (q.track ?? 'CTFL') === activeTrack),
     [activeTrack],
@@ -148,11 +156,6 @@ export function StudyAppProvider({ children }: { children: ReactNode }) {
   const trackStatistics = useMemo(
     () => (trackHistory.length > 0 ? calculateUserStatistics(trackHistory) : EMPTY_STATISTICS),
     [trackHistory],
-  )
-
-  const trackDraft = useMemo(
-    () => (rawDraft && (rawDraft.track ?? 'CTFL') === activeTrack ? rawDraft : null),
-    [rawDraft, activeTrack],
   )
 
   useEffect(() => {
@@ -184,8 +187,14 @@ export function StudyAppProvider({ children }: { children: ReactNode }) {
     updateSettings({ activeTrack: track })
   }
 
+  function continueDraft() {
+    if (rawDraft && rawDraft.track && rawDraft.track !== activeTrack) {
+      setActiveTrack(rawDraft.track)
+    }
+  }
+
   function persistDraft(nextDraft: ActiveQuiz) {
-    const saved = storageService.saveDraft(nextDraft)
+    const saved = storageService.saveDraft(nextDraft, currentUser.id)
     setRawDraft(saved)
   }
 
@@ -267,83 +276,83 @@ export function StudyAppProvider({ children }: { children: ReactNode }) {
   }
 
   function selectAnswer(questionId: QuestionId, selectedAnswer: number) {
-    if (!trackDraft) return
-    const question = trackDraft.questions.find((item) => String(item.id) === String(questionId))
+    if (!rawDraft) return
+    const question = rawDraft.questions.find((item) => String(item.id) === String(questionId))
     if (!question || !Number.isInteger(selectedAnswer) || selectedAnswer < 0 || selectedAnswer >= question.options.length) return
     persistDraft({
-      ...trackDraft,
-      answers: { ...trackDraft.answers, [String(questionId)]: selectedAnswer },
+      ...rawDraft,
+      answers: { ...rawDraft.answers, [String(questionId)]: selectedAnswer },
       updatedAt: new Date().toISOString(),
     })
   }
 
   function setCurrentQuestion(index: number) {
-    if (!trackDraft || !Number.isInteger(index)) return
-    const currentIndex = Math.max(0, Math.min(trackDraft.questions.length - 1, index))
-    persistDraft({ ...trackDraft, currentIndex, updatedAt: new Date().toISOString() })
+    if (!rawDraft || !Number.isInteger(index)) return
+    const currentIndex = Math.max(0, Math.min(rawDraft.questions.length - 1, index))
+    persistDraft({ ...rawDraft, currentIndex, updatedAt: new Date().toISOString() })
   }
 
   function toggleQuestionReview(questionId: QuestionId) {
-    if (!trackDraft) return
-    const exists = trackDraft.reviewQuestionIds.some((id) => String(id) === String(questionId))
+    if (!rawDraft) return
+    const exists = rawDraft.reviewQuestionIds.some((id) => String(id) === String(questionId))
     const reviewQuestionIds = exists
-      ? trackDraft.reviewQuestionIds.filter((id) => String(id) !== String(questionId))
-      : [...trackDraft.reviewQuestionIds, questionId]
-    persistDraft({ ...trackDraft, reviewQuestionIds, updatedAt: new Date().toISOString() })
+      ? rawDraft.reviewQuestionIds.filter((id) => String(id) !== String(questionId))
+      : [...rawDraft.reviewQuestionIds, questionId]
+    persistDraft({ ...rawDraft, reviewQuestionIds, updatedAt: new Date().toISOString() })
   }
 
   function toggleFavorite(questionId: QuestionId) {
-    setFavorites(storageService.toggleFavorite(questionId))
+    setFavorites(storageService.toggleFavorite(questionId, currentUser.id))
   }
 
   function finishQuiz(): QuizResult | null {
-    if (!trackDraft) return null
-    const elapsed = Math.max(0, Math.round((Date.now() - new Date(trackDraft.startedAt).getTime()) / 1000))
-    const durationSeconds = trackDraft.timerMode === 'exam' && trackDraft.durationMinutes
-      ? Math.min(elapsed, trackDraft.durationMinutes * 60)
+    if (!rawDraft) return null
+    const elapsed = Math.max(0, Math.round((Date.now() - new Date(rawDraft.startedAt).getTime()) / 1000))
+    const durationSeconds = rawDraft.timerMode === 'exam' && rawDraft.durationMinutes
+      ? Math.min(elapsed, rawDraft.durationMinutes * 60)
       : elapsed
-    const result = calculateQuizResult(quizFromActiveQuiz(trackDraft), trackDraft.answers, { durationSeconds })
-    const nextHistory = storageService.saveQuizResult(result)
-    storageService.clearDraft()
+    const result = calculateQuizResult(quizFromActiveQuiz(rawDraft), rawDraft.answers, { durationSeconds })
+    const nextHistory = storageService.saveQuizResult(result, currentUser.id)
+    storageService.clearDraft(currentUser.id)
     setAllHistory(nextHistory)
     setRawDraft(null)
     return result
   }
 
   function discardQuiz() {
-    storageService.clearDraft()
+    storageService.clearDraft(currentUser.id)
     setRawDraft(null)
   }
 
   function updateSettings(patch: Partial<AppSettings>): AppSettings {
-    const next = storageService.saveSettings(patch)
+    const next = storageService.saveSettings(patch, currentUser.id)
     setSettingsState(next)
     return next
   }
 
   function setTheme(theme: Theme): AppSettings {
-    const next = storageService.setTheme(theme)
+    const next = storageService.setTheme(theme, currentUser.id)
     setSettingsState(next)
     return next
   }
 
   function exportBackup(): string {
-    return storageService.exportData()
+    return storageService.exportData(currentUser.id)
   }
 
   function importBackup(input: string | unknown) {
-    storageService.importData(input)
-    setAllHistory(storageService.getHistory())
-    setFavorites(storageService.getFavorites())
-    setSettingsState(storageService.getSettings())
-    setRawDraft(storageService.getDraft())
+    storageService.importData(input, currentUser.id)
+    setAllHistory(storageService.getHistory(currentUser.id))
+    setFavorites(storageService.getFavorites(currentUser.id))
+    setSettingsState(storageService.getSettings(currentUser.id))
+    setRawDraft(storageService.getDraft(currentUser.id))
   }
 
   function clearAllData() {
-    storageService.clearData()
+    storageService.clearData(currentUser.id)
     setAllHistory([])
     setFavorites([])
-    setSettingsState(storageService.getSettings())
+    setSettingsState(storageService.getSettings(currentUser.id))
     setRawDraft(null)
   }
 
@@ -359,7 +368,9 @@ export function StudyAppProvider({ children }: { children: ReactNode }) {
     statistics: trackStatistics,
     favorites,
     settings,
-    draft: trackDraft,
+    draft: rawDraft,
+    draftTrackInfo,
+    continueDraft,
     classification,
     startQuiz,
     selectAnswer,

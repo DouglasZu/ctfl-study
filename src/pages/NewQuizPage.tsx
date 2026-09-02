@@ -14,9 +14,10 @@ import {
   Sparkles,
   Star,
   TimerOff,
+  Trash2,
 } from 'lucide-react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ConfirmDialog } from '../components'
+import { ConfirmDialog, Modal } from '../components'
 import { TrackSelector } from '../components/TrackSelector'
 import type { QuizMode, TimerMode } from '../types'
 import { useStudyApp } from '../hooks/useStudyApp'
@@ -38,7 +39,19 @@ const modes: Array<{
 ]
 
 export function NewQuizPage() {
-  const { questions, history, favorites, settings, draft, startQuiz, activeTrack, activeTrackInfo } = useStudyApp()
+  const {
+    questions,
+    history,
+    favorites,
+    settings,
+    draft,
+    draftTrackInfo,
+    continueDraft,
+    discardQuiz,
+    startQuiz,
+    activeTrack,
+    activeTrackInfo,
+  } = useStudyApp()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const requestedMode = searchParams.get('mode')
@@ -59,7 +72,18 @@ export function NewQuizPage() {
   const [durationMinutes, setDurationMinutes] = useState(activeTrackInfo.durationMinutes)
   const [shuffleOptions, setShuffleOptions] = useState(settings.shuffleOptions)
   const [replaceOpen, setReplaceOpen] = useState(false)
+  const [discardDraftOpen, setDiscardDraftOpen] = useState(false)
   const [error, setError] = useState('')
+
+  function handleContinue() {
+    continueDraft()
+    navigate('/quiz')
+  }
+
+  function handleDiscardCurrent() {
+    discardQuiz()
+    setDiscardDraftOpen(false)
+  }
 
   useEffect(() => {
     if (requestedMode && modes.some((m) => m.id === requestedMode)) {
@@ -168,6 +192,36 @@ export function NewQuizPage() {
 
       {/* Seletor de Certificação */}
       <TrackSelector compact showDescription={false} />
+
+      {/* Banner de Simulado em Andamento */}
+      {draft && (
+        <section className="resume-banner" aria-label="Simulado em andamento" style={{ marginBottom: '1.25rem' }}>
+          <div className="resume-banner__icon"><Clock3 size={22} /></div>
+          <div className="resume-banner__copy">
+            <strong>Você possui um simulado em andamento ({draftTrackInfo.code} · {draftTrackInfo.shortTitle})</strong>
+            <span>
+              {Object.values(draft.answers).filter((answer) => answer !== null).length} de {draft.questions.length} questões respondidas
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="button button--ghost button--sm"
+              onClick={() => setDiscardDraftOpen(true)}
+              style={{ color: 'var(--color-text-subtle)' }}
+            >
+              <Trash2 size={15} /> Descartar
+            </button>
+            <button
+              type="button"
+              className="button button--secondary"
+              onClick={handleContinue}
+            >
+              Continuar simulado <ArrowRight size={17} />
+            </button>
+          </div>
+        </section>
+      )}
 
       <div className="setup-layout">
         <div className="setup-main">
@@ -377,15 +431,54 @@ export function NewQuizPage() {
         </button>
       </div>
 
+      {replaceOpen && (
+        <Modal
+          open={replaceOpen}
+          title="Substituir simulado em andamento?"
+          description={`Você já tem uma sessão de ${draftTrackInfo.code} em progresso. Como deseja prosseguir?`}
+          onClose={() => setReplaceOpen(false)}
+          size="sm"
+          footer={
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end', width: '100%' }}>
+              <button
+                type="button"
+                className="button button--ghost button--sm"
+                onClick={() => setReplaceOpen(false)}
+              >
+                Voltar
+              </button>
+              <button
+                type="button"
+                className="button button--danger button--sm"
+                onClick={launchQuiz}
+              >
+                Descartar e começar novo
+              </button>
+              <button
+                type="button"
+                className="button button--primary button--sm"
+                onClick={handleContinue}
+              >
+                Continuar o atual <ArrowRight size={15} />
+              </button>
+            </div>
+          }
+        >
+          <p style={{ fontSize: '0.875rem', color: 'var(--color-text-subtle)' }}>
+            Se escolher começar um novo simulado, as respostas não finalizadas da sessão anterior serão descartadas.
+          </p>
+        </Modal>
+      )}
+
       <ConfirmDialog
-        open={replaceOpen}
-        title="Substituir simulado em andamento?"
-        description="O progresso do simulado atual será descartado ao iniciar esta nova sessão."
-        cancelLabel="Continuar o atual"
-        confirmLabel="Descartar e começar"
+        open={discardDraftOpen}
+        title="Descartar simulado em andamento?"
+        description={`O progresso do simulado de ${draftTrackInfo.code} será removido deste dispositivo.`}
+        cancelLabel="Voltar"
+        confirmLabel="Sim, descartar"
         confirmVariant="danger"
-        onClose={() => setReplaceOpen(false)}
-        onConfirm={launchQuiz}
+        onClose={() => setDiscardDraftOpen(false)}
+        onConfirm={handleDiscardCurrent}
       />
     </main>
   )
