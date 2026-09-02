@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
+  <title id="title">Ícone do CTFL Study</title>
+  <desc id="description">Cartão de estudo com uma marca de verificação</desc>
+  <defs>
+    <linearGradient id="background" x1="64" y1="32" x2="448" y2="480" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#173c35"/>
+      <stop offset="1" stop-color="#0b1715"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="166" y1="154" x2="363" y2="361" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#65e0b8"/>
+      <stop offset="1" stop-color="#27b889"/>
+    </linearGradient>
+    <filter id="shadow" x="90" y="76" width="332" height="374" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="14" stdDeviation="12" flood-color="#06100e" flood-opacity=".34"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="url(#background)"/>
+  <circle cx="426" cy="88" r="66" fill="#65e0b8" opacity=".08"/>
+  <circle cx="78" cy="432" r="92" fill="#65e0b8" opacity=".06"/>
+  <g filter="url(#shadow)">
+    <rect x="116" y="94" width="280" height="326" rx="42" fill="#f5fbf8"/>
+    <rect x="194" y="74" width="124" height="52" rx="22" fill="url(#accent)"/>
+    <rect x="218" y="92" width="76" height="14" rx="7" fill="#0e2823" opacity=".72"/>
+    <circle cx="169" cy="180" r="13" fill="#d5e4df"/>
+    <rect x="200" y="169" width="132" height="22" rx="11" fill="#c4d7d1"/>
+    <circle cx="169" cy="238" r="13" fill="#d5e4df"/>
+    <rect x="200" y="227" width="102" height="22" rx="11" fill="#c4d7d1"/>
+    <circle cx="169" cy="296" r="13" fill="#d5e4df"/>
+    <rect x="200" y="285" width="76" height="22" rx="11" fill="#c4d7d1"/>
+    <circle cx="312" cy="329" r="72" fill="url(#accent)"/>
+    <path d="m276 330 23 23 48-55" fill="none" stroke="#0b211c" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

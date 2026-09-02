@@ -1,0 +1,362 @@
+[
+  {
+    "id": 1,
+    "question": "Uma equipe testa um novo fluxo de cadastro antes da liberação. Qual resultado representa um objetivo realista do teste?",
+    "options": [
+      "Provar que o produto não contém nenhum defeito",
+      "Fornecer informações sobre a qualidade e reduzir riscos da liberação",
+      "Garantir que nenhuma falha ocorrerá em produção",
+      "Substituir a necessidade de revisar os requisitos"
+    ],
+    "correctAnswer": 1,
+    "explanation": "O teste fornece informações para decisões e ajuda a reduzir riscos. Ele pode revelar defeitos, mas não prova que o produto esteja completamente livre deles.",
+    "chapter": "1",
+    "topic": "Fundamentos de Teste",
+    "difficulty": "easy"
+  },
+  {
+    "id": 2,
+    "question": "Todos os defeitos conhecidos de um sistema de reservas foram corrigidos, mas clientes ainda não conseguem concluir sua principal tarefa. Qual princípio de teste é melhor ilustrado?",
+    "options": [
+      "Testes exaustivos são impossíveis",
+      "Defeitos se agrupam",
+      "A ausência de erros é uma falácia",
+      "Testes se desgastam com o tempo"
+    ],
+    "correctAnswer": 2,
+    "explanation": "Corrigir defeitos não torna um produto útil se ele não atende às necessidades e expectativas dos usuários. Esse é o princípio da falácia da ausência de erros.",
+    "chapter": "1",
+    "topic": "Fundamentos de Teste",
+    "difficulty": "medium"
+  },
+  {
+    "id": 3,
+    "question": "Durante um teste, uma resposta incorreta é observada. Em seguida, uma pessoa localiza a causa no código e a corrige. Como essas duas atividades são classificadas?",
+    "options": [
+      "Ambas são atividades de teste",
+      "A primeira é teste; localizar e corrigir a causa é depuração",
+      "A primeira é depuração; a segunda é teste estático",
+      "Ambas são atividades de depuração"
+    ],
+    "correctAnswer": 1,
+    "explanation": "O teste pode provocar e observar uma falha. A depuração procura a causa do defeito, corrige-a e normalmente é seguida por novo teste.",
+    "chapter": "1",
+    "topic": "Fundamentos de Teste",
+    "difficulty": "easy"
+  },
+  {
+    "id": 4,
+    "question": "Qual é um benefício provável de algum grau de independência no teste?",
+    "options": [
+      "Eliminar a necessidade de colaboração com quem desenvolve",
+      "Garantir que todos os defeitos sejam encontrados",
+      "Trazer perspectivas diferentes e perceber suposições feitas pelo autor",
+      "Transferir toda a responsabilidade pela qualidade para a equipe de teste"
+    ],
+    "correctAnswer": 2,
+    "explanation": "Uma perspectiva diferente pode revelar defeitos influenciados pelas suposições do autor. Independência não elimina colaboração nem transfere a responsabilidade coletiva pela qualidade.",
+    "chapter": "1",
+    "topic": "Fundamentos de Teste",
+    "difficulty": "hard"
+  },
+  {
+    "id": 5,
+    "question": "O que melhor exemplifica a abordagem shift-left?",
+    "options": [
+      "Adiar todos os testes até o sistema estar completo",
+      "Revisar critérios de aceitação e projetar testes ainda durante o refinamento",
+      "Executar apenas testes manuais perto da entrega",
+      "Mover a correção de defeitos para a equipe de operações"
+    ],
+    "correctAnswer": 1,
+    "explanation": "Shift-left aproxima atividades de teste das fases iniciais do desenvolvimento, permitindo feedback e prevenção de defeitos mais cedo.",
+    "chapter": "2",
+    "topic": "Teste ao Longo do Ciclo de Vida",
+    "difficulty": "easy"
+  },
+  {
+    "id": 6,
+    "question": "Uma equipe precisa verificar se o serviço de pagamento troca mensagens corretamente com o serviço de pedidos. Qual nível de teste é o foco principal?",
+    "options": [
+      "Teste de componente",
+      "Teste de integração de componentes",
+      "Teste de aceitação",
+      "Teste estático"
+    ],
+    "correctAnswer": 1,
+    "explanation": "O foco está nas interfaces e interações entre componentes ou serviços, característica do teste de integração de componentes.",
+    "chapter": "2",
+    "topic": "Teste ao Longo do Ciclo de Vida",
+    "difficulty": "medium"
+  },
+  {
+    "id": 7,
+    "question": "Após a migração de uma aplicação para outro banco de dados, qual ação de teste de manutenção é mais apropriada primeiro?",
+    "options": [
+      "Reexecutar aleatoriamente todos os casos existentes",
+      "Realizar análise de impacto para definir o escopo dos testes",
+      "Testar apenas a aparência das telas",
+      "Descartar os testes de regressão anteriores"
+    ],
+    "correctAnswer": 1,
+    "explanation": "A análise de impacto identifica áreas afetadas pela mudança e orienta a seleção de testes de confirmação e regressão adequados.",
+    "chapter": "2",
+    "topic": "Teste ao Longo do Ciclo de Vida",
+    "difficulty": "hard"
+  },
+  {
+    "id": 8,
+    "question": "Em uma equipe iterativa, quando as atividades de teste devem ocorrer?",
+    "options": [
+      "Somente depois de todas as iterações",
+      "Apenas quando a pessoa desenvolvedora solicitar",
+      "Ao longo da iteração, integradas às demais atividades",
+      "Exclusivamente antes da implementação"
+    ],
+    "correctAnswer": 2,
+    "explanation": "Em ciclos iterativos, teste e desenvolvimento são atividades integradas. Feedback frequente ajuda a detectar e corrigir problemas dentro da própria iteração.",
+    "chapter": "2",
+    "topic": "Teste ao Longo do Ciclo de Vida",
+    "difficulty": "medium"
+  },
+  {
+    "id": 9,
+    "question": "Qual defeito pode ser encontrado por teste estático antes de existir código executável?",
+    "options": [
+      "Tempo real de resposta acima de dois segundos",
+      "Texto ambíguo em um requisito",
+      "Falha de conexão em um servidor em produção",
+      "Uso excessivo de memória durante um teste de carga"
+    ],
+    "correctAnswer": 1,
+    "explanation": "Revisões podem identificar ambiguidades, omissões e inconsistências em requisitos sem executar o produto.",
+    "chapter": "3",
+    "topic": "Teste Estático",
+    "difficulty": "easy"
+  },
+  {
+    "id": 10,
+    "question": "Em uma revisão formal, qual responsabilidade é tipicamente atribuída à pessoa que atua como redatora (scribe)?",
+    "options": [
+      "Corrigir imediatamente todos os defeitos encontrados",
+      "Registrar anomalias, decisões e itens de ação",
+      "Aprovar o orçamento do projeto",
+      "Executar testes de regressão após a reunião"
+    ],
+    "correctAnswer": 1,
+    "explanation": "A pessoa redatora registra informações relevantes da revisão, como anomalias e decisões. A correção cabe normalmente ao autor ou responsável pelo produto de trabalho.",
+    "chapter": "3",
+    "topic": "Teste Estático",
+    "difficulty": "medium"
+  },
+  {
+    "id": 11,
+    "question": "Qual prática aumenta a chance de sucesso de uma revisão?",
+    "options": [
+      "Usar a reunião para avaliar o desempenho individual do autor",
+      "Definir objetivos claros e dar tempo adequado para preparação",
+      "Convidar o maior número possível de pessoas, independentemente do conhecimento",
+      "Evitar registrar resultados para acelerar o processo"
+    ],
+    "correctAnswer": 1,
+    "explanation": "Objetivos claros, participantes adequados, preparação e uma cultura construtiva tornam as revisões mais eficazes.",
+    "chapter": "3",
+    "topic": "Teste Estático",
+    "difficulty": "medium"
+  },
+  {
+    "id": 12,
+    "question": "Uma ferramenta examina o código sem executá-lo e sinaliza uma variável declarada que nunca é usada. Que atividade ocorreu?",
+    "options": [
+      "Análise estática",
+      "Teste de desempenho",
+      "Teste de aceitação",
+      "Depuração dinâmica"
+    ],
+    "correctAnswer": 0,
+    "explanation": "A análise estática avalia artefatos, frequentemente código, sem executá-los e pode detectar padrões como variáveis não utilizadas ou código inalcançável.",
+    "chapter": "3",
+    "topic": "Teste Estático",
+    "difficulty": "hard"
+  },
+  {
+    "id": 13,
+    "question": "Um campo aceita quantidades inteiras de 1 a 50. Pela técnica de particionamento de equivalência, quais valores representam uma partição válida e duas inválidas?",
+    "options": [
+      "1, 2 e 3",
+      "0, 25 e 51",
+      "24, 25 e 26",
+      "1, 25 e 50"
+    ],
+    "correctAnswer": 1,
+    "explanation": "Os valores menores que 1, entre 1 e 50 e maiores que 50 formam três partições. Os valores 0, 25 e 51 representam uma partição cada.",
+    "chapter": "4",
+    "topic": "Análise e Projeto de Teste",
+    "difficulty": "easy"
+  },
+  {
+    "id": 14,
+    "question": "Para um campo que aceita idades inteiras de 18 a 65, qual conjunto cobre os valores de fronteira e seus vizinhos imediatos?",
+    "options": [
+      "18 e 65",
+      "17, 18, 65 e 66",
+      "17, 18, 19, 64, 65 e 66",
+      "18, 19, 64 e 65"
+    ],
+    "correctAnswer": 2,
+    "explanation": "Considerando a análise de valor limite com três valores por fronteira, são exercitados o limite, o vizinho logo abaixo e o vizinho logo acima de cada extremo.",
+    "chapter": "4",
+    "topic": "Análise e Projeto de Teste",
+    "difficulty": "medium"
+  },
+  {
+    "id": 15,
+    "question": "Quando uma regra de desconto depende da combinação entre tipo de cliente, valor da compra e existência de cupom, qual técnica ajuda a derivar testes sistematicamente?",
+    "options": [
+      "Tabela de decisão",
+      "Análise de valor limite",
+      "Teste de instruções",
+      "Estimativa por analogia"
+    ],
+    "correctAnswer": 0,
+    "explanation": "Tabelas de decisão representam combinações de condições e as ações correspondentes, sendo úteis para regras de negócio combinatórias.",
+    "chapter": "4",
+    "topic": "Análise e Projeto de Teste",
+    "difficulty": "medium"
+  },
+  {
+    "id": 16,
+    "question": "Uma conta desbloqueada passa ao estado bloqueado após três senhas incorretas consecutivas. Qual sequência exercita diretamente essa transição?",
+    "options": [
+      "Senha correta, senha incorreta, senha incorreta",
+      "Senha incorreta, senha correta, senha incorreta",
+      "Senha incorreta, senha incorreta, senha incorreta",
+      "Senha correta, senha correta, senha correta"
+    ],
+    "correctAnswer": 2,
+    "explanation": "A sequência de três tentativas incorretas consecutivas satisfaz o evento definido para a transição do estado desbloqueado ao bloqueado.",
+    "chapter": "4",
+    "topic": "Análise e Projeto de Teste",
+    "difficulty": "hard"
+  },
+  {
+    "id": 17,
+    "question": "Dois riscos de produto competem pela mesma janela de teste. Qual combinação normalmente indica a maior prioridade?",
+    "options": [
+      "Baixa probabilidade e baixo impacto",
+      "Alta probabilidade e alto impacto",
+      "Baixa probabilidade e impacto irrelevante",
+      "Risco já encerrado e sem impacto"
+    ],
+    "correctAnswer": 1,
+    "explanation": "O nível de risco de produto considera probabilidade e impacto. Um risco alto em ambos tende a receber prioridade de teste maior.",
+    "chapter": "5",
+    "topic": "Gerenciamento das Atividades de Teste",
+    "difficulty": "easy"
+  },
+  {
+    "id": 18,
+    "question": "Qual é a finalidade principal de um plano de teste?",
+    "options": [
+      "Registrar apenas os defeitos que já foram corrigidos",
+      "Descrever objetivos, abordagem, recursos e cronograma das atividades de teste",
+      "Substituir toda comunicação entre as partes interessadas",
+      "Garantir antecipadamente a aprovação do produto"
+    ],
+    "correctAnswer": 1,
+    "explanation": "O planejamento estabelece o que será testado, por quê, como, por quem e quando, além de apoiar monitoramento e controle.",
+    "chapter": "5",
+    "topic": "Gerenciamento das Atividades de Teste",
+    "difficulty": "medium"
+  },
+  {
+    "id": 19,
+    "question": "Qual informação torna um relatório de defeito especialmente útil para investigação?",
+    "options": [
+      "A opinião sobre quem causou o problema",
+      "Passos reproduzíveis, resultado esperado, resultado observado e ambiente",
+      "Somente um título curto e a prioridade",
+      "Uma estimativa do número total de defeitos do produto"
+    ],
+    "correctAnswer": 1,
+    "explanation": "Dados objetivos e reproduzíveis ajudam a observar a falha, investigar sua causa e verificar posteriormente a correção.",
+    "chapter": "5",
+    "topic": "Gerenciamento das Atividades de Teste",
+    "difficulty": "easy"
+  },
+  {
+    "id": 20,
+    "question": "Uma equipe mantém rastreabilidade bidirecional entre requisitos e casos de teste. Qual decisão essa informação apoia melhor?",
+    "options": [
+      "Escolher a linguagem de programação mais popular",
+      "Avaliar cobertura e impacto quando um requisito muda",
+      "Eliminar a necessidade de testes exploratórios",
+      "Determinar automaticamente a causa de cada falha"
+    ],
+    "correctAnswer": 1,
+    "explanation": "A rastreabilidade permite verificar quais requisitos possuem testes e localizar quais casos podem ser afetados por uma mudança.",
+    "chapter": "5",
+    "topic": "Gerenciamento das Atividades de Teste",
+    "difficulty": "hard"
+  },
+  {
+    "id": 21,
+    "question": "Qual é uma prática recomendada ao introduzir uma nova ferramenta de teste?",
+    "options": [
+      "Automatizar imediatamente todos os testes existentes",
+      "Executar um piloto, definir objetivos e capacitar as pessoas envolvidas",
+      "Medir o sucesso apenas pelo número de scripts criados",
+      "Dispensar a manutenção futura dos ativos automatizados"
+    ],
+    "correctAnswer": 1,
+    "explanation": "Uma introdução gradual com objetivos mensuráveis, piloto, treinamento e avaliação de benefícios e custos reduz riscos de adoção.",
+    "chapter": "6",
+    "topic": "Ferramentas de Teste",
+    "difficulty": "medium"
+  },
+  {
+    "id": 22,
+    "question": "Qual atividade costuma ser uma boa candidata inicial à automação?",
+    "options": [
+      "Uma avaliação de usabilidade que exige julgamento humano",
+      "Um teste de regressão estável, repetitivo e executado com frequência",
+      "Uma sessão exploratória sobre uma funcionalidade ainda indefinida",
+      "Uma decisão de negócio sem critérios explícitos"
+    ],
+    "correctAnswer": 1,
+    "explanation": "Testes estáveis e repetitivos podem gerar retorno com execuções frequentes. Atividades baseadas em observação e julgamento humano podem não ser boas candidatas.",
+    "chapter": "6",
+    "topic": "Ferramentas de Teste",
+    "difficulty": "easy"
+  },
+  {
+    "id": 23,
+    "question": "Como testes automatizados em uma integração contínua podem apoiar a equipe?",
+    "options": [
+      "Provando que cada alteração está livre de defeitos",
+      "Fornecendo feedback rápido sobre possíveis regressões após alterações",
+      "Eliminando a necessidade de analisar resultados",
+      "Impedindo qualquer modificação em código já testado"
+    ],
+    "correctAnswer": 1,
+    "explanation": "A execução frequente de verificações automatizadas oferece feedback rápido. Ela reduz, mas não elimina, incerteza e ainda requer análise adequada.",
+    "chapter": "6",
+    "topic": "Ferramentas de Teste",
+    "difficulty": "medium"
+  },
+  {
+    "id": 24,
+    "question": "Uma equipe compra uma ferramenta acreditando que ela reduzirá imediatamente todo o esforço de teste. Qual risco de automação está mais evidente?",
+    "options": [
+      "Expectativas irrealistas sobre benefícios e esforço de manutenção",
+      "Excesso de independência entre testadores e desenvolvedores",
+      "Impossibilidade de executar testes repetitivos",
+      "Redução obrigatória da cobertura de regressão"
+    ],
+    "correctAnswer": 0,
+    "explanation": "Automação exige aprendizagem, integração e manutenção. Expectativas irreais podem ocultar custos e levar a uma avaliação equivocada do retorno.",
+    "chapter": "6",
+    "topic": "Ferramentas de Teste",
+    "difficulty": "hard"
+  }
+]
