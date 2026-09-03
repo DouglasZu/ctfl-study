@@ -30,12 +30,115 @@ function resolveBrowserStorage(): StorageLike {
   }
 }
 
+function sha256Sync(ascii: string): string {
+  function rightRotate(value: number, amount: number): number {
+    return (value >>> amount) | (value << (32 - amount))
+  }
+  const mathPow = Math.pow
+  const maxWord = mathPow(2, 32)
+  let i = 0
+  let j = 0
+  let result = ''
+
+  const asciiBitLength = ascii.length * 8
+
+  const hash = new Uint32Array(8)
+  const k = new Uint32Array(64)
+  let primeCounter = 0
+
+  const isComposite: Record<number, boolean> = {}
+  for (let candidate = 2; primeCounter < 64; candidate++) {
+    if (!isComposite[candidate]) {
+      for (i = 0; i < 313; i += candidate) {
+        isComposite[i] = true
+      }
+      if (primeCounter < 8) {
+        hash[primeCounter] = (mathPow(candidate, 0.5) * maxWord) | 0
+      }
+      k[primeCounter++] = (mathPow(candidate, 1 / 3) * maxWord) | 0
+    }
+  }
+
+  let padded = ascii + '\x80'
+  while ((padded.length % 64) - 56) padded += '\x00'
+
+  const wordCount = (padded.length / 4) + 2
+  const words = new Uint32Array(wordCount)
+  for (i = 0; i < padded.length; i++) {
+    const code = padded.charCodeAt(i)
+    words[i >> 2] = (words[i >> 2] ?? 0) | (code << (((3 - i) % 4) * 8))
+  }
+  words[words.length - 2] = (asciiBitLength / maxWord) | 0
+  words[words.length - 1] = asciiBitLength
+
+  const w = new Uint32Array(64)
+
+  for (j = 0; j < words.length; j += 16) {
+    for (i = 0; i < 16; i++) {
+      w[i] = words[j + i] ?? 0
+    }
+    for (i = 16; i < 64; i++) {
+      const w15 = w[i - 15] ?? 0
+      const w2 = w[i - 2] ?? 0
+      const s0 = rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3)
+      const s1 = rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10)
+      w[i] = ((w[i - 16] ?? 0) + s0 + (w[i - 7] ?? 0) + s1) | 0
+    }
+
+    let a = hash[0] ?? 0
+    let b = hash[1] ?? 0
+    let c = hash[2] ?? 0
+    let d = hash[3] ?? 0
+    let e = hash[4] ?? 0
+    let f = hash[5] ?? 0
+    let g = hash[6] ?? 0
+    let h = hash[7] ?? 0
+
+    for (i = 0; i < 64; i++) {
+      const s1 = rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25)
+      const ch = (e & f) ^ (~e & g)
+      const temp1 = (h + s1 + ch + (k[i] ?? 0) + (w[i] ?? 0)) | 0
+      const s0 = rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22)
+      const maj = (a & b) ^ (a & c) ^ (b & c)
+      const temp2 = (s0 + maj) | 0
+
+      h = g
+      g = f
+      f = e
+      e = (d + temp1) | 0
+      d = c
+      c = b
+      b = a
+      a = (temp1 + temp2) | 0
+    }
+
+    hash[0] = ((hash[0] ?? 0) + a) | 0
+    hash[1] = ((hash[1] ?? 0) + b) | 0
+    hash[2] = ((hash[2] ?? 0) + c) | 0
+    hash[3] = ((hash[3] ?? 0) + d) | 0
+    hash[4] = ((hash[4] ?? 0) + e) | 0
+    hash[5] = ((hash[5] ?? 0) + f) | 0
+    hash[6] = ((hash[6] ?? 0) + g) | 0
+    hash[7] = ((hash[7] ?? 0) + h) | 0
+  }
+
+  for (i = 0; i < 8; i++) {
+    const val = hash[i] ?? 0
+    for (j = 3; j >= 0; j--) {
+      const byte = (val >>> (j * 8)) & 255
+      result += (byte < 16 ? '0' : '') + byte.toString(16)
+    }
+  }
+  return result
+}
+
 export async function hashPassword(password: string): Promise<string> {
   if (!password) return ''
+  const salted = `${password}:ctfl_salt_2026`
   try {
     if (typeof crypto !== 'undefined' && crypto.subtle) {
       const encoder = new TextEncoder()
-      const data = encoder.encode(`${password}:ctfl_salt_2026`)
+      const data = encoder.encode(salted)
       const hashBuffer = await crypto.subtle.digest('SHA-256', data)
       const hashArray = Array.from(new Uint8Array(hashBuffer))
       return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
@@ -43,7 +146,7 @@ export async function hashPassword(password: string): Promise<string> {
   } catch {
     // Fallback if subtle crypto is unavailable
   }
-  return btoa(`${password}:ctfl_salt_2026`)
+  return sha256Sync(salted)
 }
 
 export interface RegisterInput {

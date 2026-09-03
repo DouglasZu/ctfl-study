@@ -120,4 +120,13 @@ describe('authService', () => {
     expect(userHistory).toBeTruthy()
     expect(JSON.parse(userHistory!)).toEqual([{ id: 'mock-result' }])
   })
+
+  it('hashes passwords into a 64-char SHA-256 hexadecimal string', async () => {
+    const { hashPassword } = await import('./authService')
+    const hash = await hashPassword('testPass123')
+    expect(hash).toHaveLength(64)
+    expect(hash).toMatch(/^[0-9a-f]{64}$/)
+    // Never returns base64 format with colons
+    expect(hash).not.toContain(':')
+  })
 })

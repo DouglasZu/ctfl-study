@@ -1,22 +1,22 @@
-# CTFL Study
+# CTFL & QA Certifications Study
 
-Aplicação web responsiva para praticar questões, acompanhar a evolução e organizar a revisão para a certificação ISTQB CTFL. Funciona inteiramente no navegador, sem conta e sem backend, e está pronta para hospedagem gratuita no GitHub Pages.
+Aplicação web responsiva para praticar questões, acompanhar a evolução e organizar a revisão para as principais certificações e especializações em QA e Teste de Software: **ISTQB CTFL 4.0**, **CTAL-TAE** (Test Automation Engineer), **CT-FT** (Financial Tester) e **CT-AI** (AI & Generative AI Testing). Funciona inteiramente no navegador, com suporte a múltiplos perfis locais e pronta para hospedagem no GitHub Pages.
 
-> Este é um projeto independente de apoio ao estudo. Não é afiliado nem endossado pelo ISTQB. As 24 questões incluídas são autorais e fictícias, servem para demonstrar a aplicação e não reproduzem exames oficiais ou bancos comerciais.
+> O banco de dados do projeto conta com **320 questões** estruturadas e calibradas com base nos Syllabi oficiais e normativas de mercado, divididas em **8 simulados oficiais completos** (40 questões cada), com 4 alternativas, níveis K1/K2/K3 e explicações detalhadas.
 
 ## Funcionalidades
 
-- simulados completos, por assunto, com favoritas ou com questões erradas anteriormente;
-- sessões de 10, 20, 30 ou 40 questões, limitadas automaticamente ao conteúdo disponível;
-- modo livre e modo prova com cronômetro;
-- navegação entre questões, respostas preservadas e marcação para revisar;
-- correção detalhada apenas depois da finalização, com explicações;
-- histórico, evolução, médias, acurácia por assunto e identificação de pontos fracos;
-- priorização de questões menos vistas e, no treino de erros, das dificuldades recorrentes;
-- tema claro, escuro ou conforme o sistema;
-- persistência local do histórico, configurações, favoritas e simulado em andamento;
-- exportação, importação validada e limpeza confirmada dos dados;
-- instalação como PWA e suporte offline após o primeiro carregamento completo em produção.
+- **4 Trilhas de Certificação**: CTFL 4.0, CTAL-TAE, CT-FT (Sistemas Financeiros) e CT-AI (Inteligência Artificial e LLMs);
+- **8 Simulados Oficiais Padrão Prova** (2 exames completos de 40 questões por certificação);
+- Modos de estudo flexíveis: simulado oficial, treino por tópicos/capítulos, revisão de erros e questões favoritas;
+- Sessões de 10, 20, 30 ou 40 questões, ou simulado cronometrado oficial (60 a 90 minutos);
+- Navegação fluida, preservação de respostas em rascunho e marcação para revisão posterior;
+- Correção com explicações pedagógicas aprofundadas e referências ao syllabus;
+- Métricas avançadas, gráficos de evolução histórica, acurácia por assunto e identificação de tópicos fracos;
+- Sistema de múltiplos perfis de usuário locais com hash seguro SHA-256 e isolamento completo de histórico;
+- Tema claro, escuro ou sincronizado ao sistema;
+- Exportação, importação validada por esquema Zod e limpeza controlada de dados;
+- PWA com instalação no celular/desktop e suporte offline completo.
 
 ## Requisitos e instalação
 

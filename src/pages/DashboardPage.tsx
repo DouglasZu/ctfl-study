@@ -5,6 +5,7 @@ import {
   BookOpenCheck,
   BrainCircuit,
   CheckCircle2,
+  CircleAlert,
   Clock3,
   Flame,
   History,
@@ -68,6 +69,7 @@ export function DashboardPage() {
   } = useStudyApp()
   const navigate = useNavigate()
   const [discardOpen, setDiscardOpen] = useState(false)
+  const [examError, setExamError] = useState('')
   const performance = classificationCopy[classification.key]
   const latest = history.at(0)
   const hasHistory = history.length > 0
@@ -75,6 +77,7 @@ export function DashboardPage() {
   const trackOfficialExams = OFFICIAL_EXAMS.filter((exam) => exam.track === activeTrack)
 
   function handleStartOfficialExam(examId: string, durationMinutes: number) {
+    setExamError('')
     const outcome = startQuiz({
       mode: 'exam',
       examId,
@@ -86,6 +89,8 @@ export function DashboardPage() {
     })
     if (outcome.ok) {
       navigate('/quiz')
+    } else {
+      setExamError(outcome.message)
     }
   }
 
@@ -166,6 +171,13 @@ export function DashboardPage() {
             </div>
             <span className="bank-count">{activeTrackInfo.passingPercentage}% para aprovação (26/40)</span>
           </div>
+
+          {examError && (
+            <div className="inline-notice inline-notice--warning" role="alert" style={{ marginBottom: '1rem' }}>
+              <CircleAlert size={18} />
+              <span>{examError}</span>
+            </div>
+          )}
 
           <div className="official-exams-grid">
             {trackOfficialExams.map((exam) => (

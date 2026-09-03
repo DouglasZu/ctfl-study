@@ -192,24 +192,40 @@ describe('error training', () => {
 describe('question validation', () => {
   it('loads the repository question bank through the runtime validator', () => {
     const loaded = parseQuestions(rawQuestions)
-    expect(loaded).toHaveLength(160)
+    expect(loaded).toHaveLength(320)
   })
 
-  it('contains exactly 40 questions per certification track without overlap', () => {
+  it('contains exactly 80 questions per certification track (40 per official mock) without overlap', () => {
     const loaded = parseQuestions(rawQuestions)
     const ctfl = loaded.filter((q) => q.track === 'CTFL')
     const ctalTae = loaded.filter((q) => q.track === 'CTAL-TAE')
     const ctFt = loaded.filter((q) => q.track === 'CT-FT')
     const ctAi = loaded.filter((q) => q.track === 'CT-AI')
 
-    expect(ctfl).toHaveLength(40)
-    expect(ctalTae).toHaveLength(40)
-    expect(ctFt).toHaveLength(40)
-    expect(ctAi).toHaveLength(40)
+    expect(ctfl).toHaveLength(80)
+    expect(ctalTae).toHaveLength(80)
+    expect(ctFt).toHaveLength(80)
+    expect(ctAi).toHaveLength(80)
+
+    // Ensure all 8 official exams contain exactly 40 questions each
+    const officialExamIds = [
+      'ctfl-mock-1',
+      'ctfl-mock-2',
+      'tae-mock-1',
+      'tae-mock-2',
+      'ft-mock-1',
+      'ft-mock-2',
+      'ai-mock-1',
+      'ai-mock-2',
+    ]
+    officialExamIds.forEach((examId) => {
+      const examQuestions = loaded.filter((q) => q.examId === examId)
+      expect(examQuestions).toHaveLength(40)
+    })
 
     // Ensure all question IDs are completely unique across all tracks
     const allIds = new Set(loaded.map((q) => String(q.id)))
-    expect(allIds.size).toBe(160)
+    expect(allIds.size).toBe(320)
 
     // Ensure all questions have valid options and correctAnswer in range
     loaded.forEach((q) => {
